@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+  --bg-base: #000000;
+  --surface-default: #1c1c1e;
+  --surface-elevated: #2c2c2e;
+  --primary-default: #5e5ce6;
+  --primary-foreground: #ffffff;
+  --cta-primary: #e86100;
+  --cta-foreground: #ffffff;
+  --text-primary: #ffffff;
+  --text-secondary: #aeaeb2;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --coffee-accent: #000000;
+  --status-error: #f87171;
+  --status-success: #4ade80;
+  --dark-base: #000000;
+  --dark-surface: #1c1c1e;
+  --dark-elevated: #2c2c2e;
+  --dark-muted: #8e8e93;
+  --dark-page: #000000;
+  --dark-panel: #1c1c1e;
+  --dark-control: #2c2c2e;
+  --glow-indigo: #5e5ce6;
+  --glow-indigo-soft: #7d7aff;
+  --chart-surface: #101013;
+  --chart-grid: rgba(255, 255, 255, 0.08);
+  --chart-axis: rgba(174, 174, 178, 0.78);
+  --chart-line-soft: rgba(94, 92, 230, 0.28);
+  --chart-line: #7d7aff;
+  --chart-dot: rgba(94, 92, 230, 0.18);
+  --chart-dot-core: #ffffff;
+  --font-sans: "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Menlo", monospace;
+}
+
+html[data-theme="light"] {
+  --background: #f2f2f7;
+  --foreground: #1c1c1e;
+  --bg-base: #f2f2f7;
+  --surface-default: #ffffff;
+  --surface-elevated: #ececf1;
+  --primary-default: #d45b33;
+  --primary-foreground: #ffffff;
+  --cta-primary: #e86100;
+  --cta-foreground: #ffffff;
+  --text-primary: #1c1c1e;
+  --text-secondary: #636366;
+  --border-subtle: rgba(28, 28, 30, 0.12);
+  --coffee-accent: #f2f2f7;
+  --status-error: #d73a49;
+  --status-success: #2f9e44;
+  --dark-base: #f2f2f7;
+  --dark-surface: #ffffff;
+  --dark-elevated: #ececf1;
+  --dark-muted: #8e8e93;
+  --dark-page: #f2f2f7;
+  --dark-panel: #ffffff;
+  --dark-control: #ececf1;
+  --glow-indigo: #d45b33;
+  --glow-indigo-soft: #ee9c7d;
+  --chart-surface: #ffffff;
+  --chart-grid: rgba(28, 28, 30, 0.08);
+  --chart-axis: rgba(99, 99, 102, 0.72);
+  --chart-line-soft: rgba(212, 91, 51, 0.18);
+  --chart-line: #d45b33;
+  --chart-dot: rgba(212, 91, 51, 0.16);
+  --chart-dot-core: #1c1c1e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-bg-base: var(--bg-base);
+  --color-surface-default: var(--surface-default);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-primary-default: var(--primary-default);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-cta-primary: var(--cta-primary);
+  --color-cta-foreground: var(--cta-foreground);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border-subtle: var(--border-subtle);
+  --color-coffee-accent: var(--coffee-accent);
+  --color-status-error: var(--status-error);
+  --color-status-success: var(--status-success);
+  --color-dark-base: var(--dark-base);
+  --color-dark-surface: var(--dark-surface);
+  --color-dark-elevated: var(--dark-elevated);
+  --color-dark-muted: var(--dark-muted);
+  --color-dark-page: var(--dark-page);
+  --color-dark-panel: var(--dark-panel);
+  --color-dark-control: var(--dark-control);
+  --color-glow-indigo: var(--glow-indigo);
+  --color-glow-indigo-soft: var(--glow-indigo-soft);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  @apply bg-dark-page text-text-primary;
+  font-family: var(--font-sans);
+  color-scheme: dark;
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-theme="light"] body {
+  color-scheme: light;
+}
+
+html {
+  min-height: 100%;
+  @apply bg-dark-page;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  overscroll-behavior: none;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+input,
+textarea,
+select,
+.selectable-text,
+.selectable-text *,
+[contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+@supports (-webkit-touch-callout: none) {
+  input:not([type="hidden"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.app-safe-area {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+}
