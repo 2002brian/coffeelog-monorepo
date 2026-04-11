@@ -1,8 +1,9 @@
 import Dexie, { type Table } from "dexie";
-import type {
-  Bean as CoffeeBean,
-  BrewLog as BrewRecord,
-  Equipment,
+import {
+  BeanSchema,
+  type Bean as CoffeeBean,
+  type BrewLog as BrewRecord,
+  type Equipment,
 } from "@/lib/schema";
 export type { CoffeeBean, Equipment, BrewRecord };
 
@@ -55,6 +56,33 @@ type BrewRecordV3Compat = BrewRecord & {
   filterId?: string | null;
 };
 
+type BeanV4Compat = Partial<CoffeeBean> & {
+  id: string;
+  createdAt: number;
+  updatedAt: number;
+  deletedAt?: number | null;
+  syncStatus?: CoffeeBean["syncStatus"];
+};
+
+function normalizeLegacyRoastDate(timestamp: number) {
+  return new Date(timestamp).toISOString();
+}
+
+function normalizeBeanStatus(
+  value: unknown,
+  remainingWeight: number
+): CoffeeBean["status"] {
+  if (
+    value === "RESTING" ||
+    value === "ACTIVE" ||
+    value === "ARCHIVED"
+  ) {
+    return value;
+  }
+
+  return remainingWeight <= 0 ? "ARCHIVED" : "ACTIVE";
+}
+
 class CoffeeLogDB extends Dexie {
   beansV2!: Table<CoffeeBean, string>;
   equipmentsV2!: Table<Equipment, string>;
@@ -97,6 +125,10 @@ class CoffeeLogDB extends Dexie {
           roastLevel: bean.roastLevel,
           process: bean.process,
           notes: bean.notes ?? null,
+          totalWeight: 0,
+          remainingWeight: 0,
+          status: "ACTIVE",
+          roastDate: normalizeLegacyRoastDate(bean.createdAt),
           createdAt: bean.createdAt,
           updatedAt: bean.createdAt,
           deletedAt: null,
@@ -219,6 +251,47 @@ class CoffeeLogDB extends Dexie {
             grinderId: record.grinderId ?? null,
             filterId: record.filterId ?? null,
           }))
+        );
+      });
+
+    this.version(5)
+      .stores({
+        beansV2:
+          "&id, createdAt, updatedAt, deletedAt, syncStatus, status, roastDate, peakDate",
+        equipmentsV2: "&id, createdAt, updatedAt, deletedAt, syncStatus, type",
+        brewRecordsV2:
+          "&id, beanId, equipmentId, grinderId, filterId, createdAt, updatedAt, deletedAt, syncStatus",
+      })
+      .upgrade(async (tx) => {
+        const beans = (await tx.table("beansV2").toArray()) as BeanV4Compat[];
+
+        await tx.table("beansV2").bulkPut(
+          beans.map((bean) => {
+            const totalWeight =
+              typeof bean.totalWeight === "number" &&
+              Number.isFinite(bean.totalWeight)
+                ? bean.totalWeight
+                : 0;
+            const remainingWeight =
+              typeof bean.remainingWeight === "number" &&
+              Number.isFinite(bean.remainingWeight)
+                ? bean.remainingWeight
+                : totalWeight;
+
+            return {
+              ...bean,
+              deletedAt: bean.deletedAt ?? null,
+              syncStatus: bean.syncStatus ?? "local",
+              totalWeight,
+              remainingWeight,
+              status: normalizeBeanStatus(bean.status, remainingWeight),
+              roastDate:
+                typeof bean.roastDate === "string" && bean.roastDate.trim()
+                  ? bean.roastDate
+                  : normalizeLegacyRoastDate(bean.createdAt),
+            };
+          })
+          .map((bean) => BeanSchema.parse(bean))
         );
       });
   }

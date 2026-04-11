@@ -149,10 +149,19 @@ async function restoreEntity<T extends { id: string; updatedAt: number; deletedA
 
 export async function addBean(input: BeanInput): Promise<Bean> {
   const parsedInput = BeanInputSchema.parse(input);
+  const totalWeight = parsedInput.totalWeight ?? 0;
+  const remainingWeight = parsedInput.remainingWeight ?? totalWeight;
   const bean = BeanSchema.parse({
     ...createBaseEntity(),
     ...parsedInput,
     notes: parsedInput.notes ?? null,
+    totalWeight,
+    remainingWeight,
+    status:
+      remainingWeight <= 0
+        ? "ARCHIVED"
+        : parsedInput.status ?? "RESTING",
+    roastDate: parsedInput.roastDate ?? new Date().toISOString(),
   });
 
   await db.beansV2.add(bean);

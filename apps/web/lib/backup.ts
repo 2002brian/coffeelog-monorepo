@@ -11,7 +11,8 @@ import {
 } from "@/lib/db";
 import { BeanSchema, BrewLogSchema, EquipmentSchema } from "@/lib/schema";
 
-const BACKUP_SCHEMA_VERSION = 3;
+const BACKUP_SCHEMA_VERSION = 4;
+const MIN_SUPPORTED_BACKUP_SCHEMA_VERSION = 3;
 
 type BackupData = {
   beans: CoffeeBean[];
@@ -38,53 +39,6 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function ensureString(value: unknown, fieldName: string) {
-  if (typeof value !== "string") {
-    throw new Error(`備份檔中的 ${fieldName} 欄位格式不正確。`);
-  }
-
-  return value;
-}
-
-function ensureNumber(value: unknown, fieldName: string) {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    throw new Error(`備份檔中的 ${fieldName} 欄位格式不正確。`);
-  }
-
-  return value;
-}
-
-function ensureNullableString(value: unknown, fieldName: string) {
-  if (value === undefined || value === null) {
-    return null;
-  }
-
-  return ensureString(value, fieldName);
-}
-
-function ensureNullableNumber(value: unknown, fieldName: string) {
-  if (value === undefined || value === null) {
-    return null;
-  }
-
-  return ensureNumber(value, fieldName);
-}
-
-function ensureSyncStatus(value: unknown, fieldName: string) {
-  if (
-    value === undefined ||
-    value === null ||
-    value === "local" ||
-    value === "synced" ||
-    value === "pending_update" ||
-    value === "pending_delete"
-  ) {
-    return (value ?? "local") as CoffeeBean["syncStatus"];
-  }
-
-  throw new Error(`備份檔中的 ${fieldName} 欄位格式不正確。`);
-}
-
 function formatSchemaPath(path: PropertyKey[]) {
   if (path.length === 0) {
     return "根節點";
@@ -107,7 +61,32 @@ function formatSchemaPath(path: PropertyKey[]) {
 }
 
 function validateCoffeeBean(value: unknown, index: number): CoffeeBean {
-  const result = BeanSchema.safeParse(value);
+  const normalizedValue = isPlainObject(value)
+    ? {
+        ...value,
+        totalWeight:
+          typeof value.totalWeight === "number" ? value.totalWeight : 0,
+        remainingWeight:
+          typeof value.remainingWeight === "number"
+            ? value.remainingWeight
+            : typeof value.totalWeight === "number"
+              ? value.totalWeight
+              : 0,
+        status:
+          value.status === "RESTING" ||
+          value.status === "ACTIVE" ||
+          value.status === "ARCHIVED"
+            ? value.status
+            : "ACTIVE",
+        roastDate:
+          typeof value.roastDate === "string"
+            ? value.roastDate
+            : typeof value.createdAt === "number"
+              ? new Date(value.createdAt).toISOString()
+              : value.roastDate,
+      }
+    : value;
+  const result = BeanSchema.safeParse(normalizedValue);
 
   if (!result.success) {
     const issue = result.error.issues[0];
@@ -167,7 +146,25 @@ function normalizeBackupData(candidate: Record<string, unknown>) {
   } satisfies BackupData;
 }
 
-async function createChecksum(data: BackupData) {
+function getRawBackupData(candidate: Record<string, unknown>) {
+  const equipmentSource = candidate.equipment ?? candidate.equipments;
+
+  if (
+    !Array.isArray(candidate.beans) ||
+    !Array.isArray(equipmentSource) ||
+    !Array.isArray(candidate.records)
+  ) {
+    throw new Error("備份檔缺少完整的 beans、equipment 或 records 陣列。");
+  }
+
+  return {
+    beans: candidate.beans,
+    equipment: equipmentSource,
+    records: candidate.records,
+  };
+}
+
+async function createChecksum(data: unknown) {
   if (!globalThis.crypto?.subtle) {
     throw new Error("目前裝置不支援備份完整性驗證，請更新系統後再試。");
   }
@@ -264,7 +261,7 @@ export async function parseBackupPayload(json: string): Promise<BackupPayload> {
     );
   }
 
-  if (schemaVersion < BACKUP_SCHEMA_VERSION) {
+  if (schemaVersion < MIN_SUPPORTED_BACKUP_SCHEMA_VERSION) {
     throw new Error("這份備份格式過舊，請使用最新版 CoffeeLog 重新匯出。");
   }
 
@@ -276,12 +273,14 @@ export async function parseBackupPayload(json: string): Promise<BackupPayload> {
     throw new Error("備份檔缺少完整的 data 區塊。");
   }
 
-  const data = normalizeBackupData(payload.data);
-  const calculatedChecksum = await createChecksum(data);
+  const rawData = getRawBackupData(payload.data);
+  const calculatedChecksum = await createChecksum(rawData);
 
   if (calculatedChecksum !== payload.checksum) {
     throw new Error("備份檔案已損毀或遭到修改，拒絕匯入。");
   }
+
+  const data = normalizeBackupData(payload.data);
 
   return {
     app: typeof payload.app === "string" ? payload.app : "CoffeeLog",

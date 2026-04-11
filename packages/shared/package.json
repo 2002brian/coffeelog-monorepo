@@ -1,5 +1,9 @@
 {
   "name": "@coffeelog/shared",
   "version": "1.0.0",
-  "main": "index.ts"
+  "main": "index.ts",
+  "types": "index.ts",
+  "dependencies": {
+    "zod": "^4.3.6"
+  }
 }
