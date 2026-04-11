@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { type Table } from "dexie";
+import { normalizeBeanRecord } from "@/lib/bean-normalization";
 import { db, type LocalBrewContext } from "@/lib/db";
 import { getAverageCupScore, type AnalyticsRecord } from "@/lib/data";
 import {
@@ -172,17 +173,17 @@ export async function updateBean(id: string, patch: BeanPatch): Promise<Bean> {
   const parsedPatch = BeanUpdateSchema.parse(patch);
   ensurePatchHasKeys(parsedPatch, "咖啡豆更新");
   const next = await updateEntity(db.beansV2, id, parsedPatch);
-  return BeanSchema.parse(next);
+  return normalizeBeanRecord(next);
 }
 
 export async function deleteBean(id: string) {
   const result = await deleteEntity(db.beansV2, id);
-  return result ? BeanSchema.parse(result) : null;
+  return result ? normalizeBeanRecord(result) : null;
 }
 
 export async function restoreBean(id: string): Promise<Bean> {
   const next = await restoreEntity(db.beansV2, id);
-  return BeanSchema.parse(next);
+  return normalizeBeanRecord(next);
 }
 
 export async function addEquipment(input: EquipmentInput): Promise<Equipment> {
@@ -255,7 +256,9 @@ export async function restoreBrewLog(id: string): Promise<BrewLog> {
 
 export async function getActiveBeans(): Promise<Bean[]> {
   const beans = await db.beansV2.orderBy("createdAt").reverse().toArray();
-  return beans.filter((bean) => bean.deletedAt === null).map((bean) => BeanSchema.parse(bean));
+  return beans
+    .filter((bean) => bean.deletedAt === null)
+    .map((bean) => normalizeBeanRecord(bean));
 }
 
 export async function getActiveEquipments(): Promise<Equipment[]> {

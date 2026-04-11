@@ -4,6 +4,7 @@ import { withOptionalSentryConfig } from "./lib/sentry-next-config";
 const nextConfig: NextConfig = {
   output: "export",
   distDir: "out",
+  transpilePackages: ["@coffeelog/shared"],
   images: {
     unoptimized: true,
   },

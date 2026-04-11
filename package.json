@@ -1,8 +1,19 @@
 {
   "name": "coffeelog-workspace",
   "private": true,
+  "scripts": {
+    "dev": "concurrently -c \"cyan,magenta\" -n \"WEB,API\" \"npm run dev:web\" \"npm run dev:api\"",
+    "dev:web": "npm run dev --workspace apps/web",
+    "dev:api": "npm run dev --workspace apps/api",
+    "build:web": "npm run build --workspace apps/web",
+    "build:api": "npm run build --workspace apps/api",
+    "build:all": "npm run build --workspaces --if-present"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }

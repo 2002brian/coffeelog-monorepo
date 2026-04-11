@@ -34,8 +34,8 @@ export const BeanSchema = BaseEntitySchema.extend({
   totalWeight: z.number().finite().nonnegative(),
   remainingWeight: z.number().finite().nonnegative(),
   status: BeanStatusSchema,
-  roastDate: z.string().datetime({ offset: true }),
-  peakDate: z.string().datetime({ offset: true }).optional(),
+  roastDate: z.string().date().or(z.string()),
+  peakDate: z.string().date().optional().or(z.string().optional()),
 }).strict();
 
 export const EquipmentSchema = BaseEntitySchema.extend({

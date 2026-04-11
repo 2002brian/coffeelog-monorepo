@@ -52,6 +52,10 @@ function formatPeakDate(peakDate: string) {
   }).format(new Date(peakDate));
 }
 
+function normalizePredictionReason(reason: string) {
+  return reason.replace(/\s+/g, " ").trim();
+}
+
 function resolvePeakPredictionEndpoint() {
   const explicitEndpoint =
     process.env.NEXT_PUBLIC_BEAN_PREDICT_ENDPOINT?.trim() ?? "";
@@ -89,6 +93,9 @@ export default function BeansClient() {
     origin.trim().length > 0 &&
     roastLevel.trim().length > 0 &&
     process.trim().length > 0;
+  const predictionReason = prediction
+    ? normalizePredictionReason(prediction.reason)
+    : "";
 
   useEffect(() => {
     if (!prediction || !roastDate) {
@@ -144,7 +151,7 @@ export default function BeansClient() {
           "error" in payload &&
           typeof payload.error === "string"
             ? payload.error
-            : "AI 休豆預測失敗。";
+            : "AI 養豆預測失敗。";
         throw new Error(message);
       }
 
@@ -162,7 +169,7 @@ export default function BeansClient() {
       setPeakDate(calculatedPeakDate);
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "AI 休豆預測失敗。";
+        err instanceof Error ? err.message : "AI 養豆預測失敗。";
       setError(message);
       await triggerWarningNotification();
     } finally {
@@ -343,7 +350,7 @@ export default function BeansClient() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-text-primary">
-                  AI 休豆預測
+                  AI 養豆預測
                 </p>
                 <p className="text-xs leading-5 text-text-secondary">
                   根據產區、處理法與烘焙度推算建議養豆天數，並自動計算最佳賞味日。
@@ -360,30 +367,48 @@ export default function BeansClient() {
             </div>
 
             {prediction ? (
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-3">
-                  <p className="text-xs font-medium text-text-secondary">
-                    建議養豆天數
-                  </p>
-                  <p className="mt-1 text-lg font-semibold text-text-primary">
-                    {prediction.recommendedRestDays} 天
-                  </p>
+              <div className="mt-4 space-y-3">
+                <div className="grid gap-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+                  <div className="rounded-2xl border border-amber-500/25 bg-amber-500/8 px-4 py-4">
+                    <p className="text-[11px] font-semibold tracking-[0.18em] text-amber-200/80">
+                      AI 建議
+                    </p>
+                    <div className="mt-2 flex items-end gap-2">
+                      <p className="text-3xl font-semibold leading-none text-text-primary">
+                        {prediction.recommendedRestDays}
+                      </p>
+                      <p className="pb-1 text-sm font-medium text-text-secondary">
+                        天養豆
+                      </p>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-text-primary">
+                      {predictionReason}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-border-subtle bg-dark-panel px-4 py-4">
+                    <p className="text-xs font-medium text-text-secondary">
+                      最佳賞味日
+                    </p>
+                    <p className="mt-2 text-lg font-semibold text-text-primary">
+                      {peakDate ? formatPeakDate(peakDate) : "尚未計算"}
+                    </p>
+                    <p className="mt-3 text-xs leading-5 text-text-secondary">
+                      若儲存在原生 App，送出後會於當天上午 9:00 排程提醒。
+                    </p>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-3">
-                  <p className="text-xs font-medium text-text-secondary">
-                    最佳賞味日
-                  </p>
-                  <p className="mt-1 text-lg font-semibold text-text-primary">
-                    {peakDate ? formatPeakDate(peakDate) : "尚未計算"}
-                  </p>
-                </div>
-                <div className="sm:col-span-2 rounded-xl border border-border-subtle bg-dark-panel px-4 py-3">
-                  <p className="text-xs font-medium text-text-secondary">
-                    AI 判斷理由
-                  </p>
-                  <p className="mt-1 text-sm leading-6 text-text-primary">
-                    {prediction.reason}
-                  </p>
+
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex rounded-full border border-border-subtle bg-dark-panel px-3 py-1.5 text-xs font-medium text-text-secondary">
+                    產區 {origin.trim()}
+                  </span>
+                  <span className="inline-flex rounded-full border border-border-subtle bg-dark-panel px-3 py-1.5 text-xs font-medium text-text-secondary">
+                    處理法 {process.trim()}
+                  </span>
+                  <span className="inline-flex rounded-full border border-border-subtle bg-dark-panel px-3 py-1.5 text-xs font-medium text-text-secondary">
+                    烘焙度 {roastLevel.trim()}
+                  </span>
                 </div>
               </div>
             ) : null}

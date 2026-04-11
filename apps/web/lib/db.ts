@@ -1,10 +1,10 @@
 import Dexie, { type Table } from "dexie";
 import {
-  BeanSchema,
   type Bean as CoffeeBean,
   type BrewLog as BrewRecord,
   type Equipment,
 } from "@/lib/schema";
+import { normalizeBeanRecord } from "@/lib/bean-normalization";
 export type { CoffeeBean, Equipment, BrewRecord };
 
 export type LocalBrewContext = {
@@ -64,25 +64,6 @@ type BeanV4Compat = Partial<CoffeeBean> & {
   syncStatus?: CoffeeBean["syncStatus"];
 };
 
-function normalizeLegacyRoastDate(timestamp: number) {
-  return new Date(timestamp).toISOString();
-}
-
-function normalizeBeanStatus(
-  value: unknown,
-  remainingWeight: number
-): CoffeeBean["status"] {
-  if (
-    value === "RESTING" ||
-    value === "ACTIVE" ||
-    value === "ARCHIVED"
-  ) {
-    return value;
-  }
-
-  return remainingWeight <= 0 ? "ARCHIVED" : "ACTIVE";
-}
-
 class CoffeeLogDB extends Dexie {
   beansV2!: Table<CoffeeBean, string>;
   equipmentsV2!: Table<Equipment, string>;
@@ -128,7 +109,7 @@ class CoffeeLogDB extends Dexie {
           totalWeight: 0,
           remainingWeight: 0,
           status: "ACTIVE",
-          roastDate: normalizeLegacyRoastDate(bean.createdAt),
+          roastDate: new Date(bean.createdAt).toISOString(),
           createdAt: bean.createdAt,
           updatedAt: bean.createdAt,
           deletedAt: null,
@@ -266,32 +247,23 @@ class CoffeeLogDB extends Dexie {
         const beans = (await tx.table("beansV2").toArray()) as BeanV4Compat[];
 
         await tx.table("beansV2").bulkPut(
-          beans.map((bean) => {
-            const totalWeight =
-              typeof bean.totalWeight === "number" &&
-              Number.isFinite(bean.totalWeight)
-                ? bean.totalWeight
-                : 0;
-            const remainingWeight =
-              typeof bean.remainingWeight === "number" &&
-              Number.isFinite(bean.remainingWeight)
-                ? bean.remainingWeight
-                : totalWeight;
+          beans.map((bean) => normalizeBeanRecord(bean))
+        );
+      });
 
-            return {
-              ...bean,
-              deletedAt: bean.deletedAt ?? null,
-              syncStatus: bean.syncStatus ?? "local",
-              totalWeight,
-              remainingWeight,
-              status: normalizeBeanStatus(bean.status, remainingWeight),
-              roastDate:
-                typeof bean.roastDate === "string" && bean.roastDate.trim()
-                  ? bean.roastDate
-                  : normalizeLegacyRoastDate(bean.createdAt),
-            };
-          })
-          .map((bean) => BeanSchema.parse(bean))
+    this.version(6)
+      .stores({
+        beansV2:
+          "&id, createdAt, updatedAt, deletedAt, syncStatus, status, roastDate, peakDate",
+        equipmentsV2: "&id, createdAt, updatedAt, deletedAt, syncStatus, type",
+        brewRecordsV2:
+          "&id, beanId, equipmentId, grinderId, filterId, createdAt, updatedAt, deletedAt, syncStatus",
+      })
+      .upgrade(async (tx) => {
+        const beans = (await tx.table("beansV2").toArray()) as BeanV4Compat[];
+
+        await tx.table("beansV2").bulkPut(
+          beans.map((bean) => normalizeBeanRecord(bean))
         );
       });
   }
