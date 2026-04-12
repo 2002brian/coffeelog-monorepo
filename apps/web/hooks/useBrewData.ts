@@ -79,6 +79,55 @@ function resolveRestoreSyncStatus(status: SyncStatus) {
   return status;
 }
 
+function getInventoryDeductedGrams(record: Pick<BrewLog, "dose"> & Partial<Pick<BrewLog, "inventoryDeductedGrams">>) {
+  return record.inventoryDeductedGrams ?? record.dose;
+}
+
+function applyBeanInventoryDelta(
+  bean: Bean,
+  deltaGrams: number
+): Bean {
+  const nextRemainingWeight = Math.max(bean.remainingWeight - deltaGrams, 0);
+
+  let nextStatus = bean.status;
+
+  if (nextRemainingWeight <= 0) {
+    nextStatus = "ARCHIVED";
+  } else if (deltaGrams > 0 && bean.status === "RESTING") {
+    nextStatus = "ACTIVE";
+  } else if (deltaGrams < 0 && bean.status === "ARCHIVED") {
+    nextStatus = "ACTIVE";
+  }
+
+  return BeanSchema.parse({
+    ...bean,
+    remainingWeight: nextRemainingWeight,
+    status: nextStatus,
+    updatedAt: Date.now(),
+    syncStatus: "pending_update",
+  });
+}
+
+async function getBrewRecordOrThrow(id: string) {
+  const record = await db.brewRecordsV2.get(id);
+
+  if (!record) {
+    throw new Error("找不到可操作的沖煮紀錄。");
+  }
+
+  return BrewLogSchema.parse(record);
+}
+
+async function getActiveBeanOrThrow(id: string) {
+  const bean = await db.beansV2.get(id);
+
+  if (!bean || bean.deletedAt !== null) {
+    throw new Error("找不到可操作的咖啡豆。");
+  }
+
+  return BeanSchema.parse(bean);
+}
+
 async function updateEntity<T extends { id: string; updatedAt: number; deletedAt: number | null; syncStatus: SyncStatus }>(
   table: Table<T, string>,
   id: string,
@@ -220,18 +269,26 @@ export async function restoreEquipment(id: string): Promise<Equipment> {
 
 export async function addBrewLog(input: BrewLogInput): Promise<BrewLog> {
   const parsedInput = BrewLogInputSchema.parse(input);
-  const brewLog = BrewLogSchema.parse({
-    ...createBaseEntity(),
-    ...parsedInput,
-    grinderId: parsedInput.grinderId ?? null,
-    filterId: parsedInput.filterId ?? null,
-    grindSize: parsedInput.grindSize ?? null,
-    bloomTime: parsedInput.bloomTime ?? null,
-    feedback: parsedInput.feedback ?? null,
-  });
+  return db.transaction("rw", db.beansV2, db.brewRecordsV2, async () => {
+    const bean = await getActiveBeanOrThrow(parsedInput.beanId);
+    const brewLog = BrewLogSchema.parse({
+      ...createBaseEntity(),
+      ...parsedInput,
+      grinderId: parsedInput.grinderId ?? null,
+      filterId: parsedInput.filterId ?? null,
+      inventoryDeductedGrams: parsedInput.dose,
+      grindSize: parsedInput.grindSize ?? null,
+      bloomTime: parsedInput.bloomTime ?? null,
+      feedback: parsedInput.feedback ?? null,
+    });
 
-  await db.brewRecordsV2.add(brewLog);
-  return brewLog;
+    const updatedBean = applyBeanInventoryDelta(bean, parsedInput.dose);
+
+    await db.beansV2.put(updatedBean);
+    await db.brewRecordsV2.add(brewLog);
+
+    return brewLog;
+  });
 }
 
 export async function updateBrewLog(
@@ -240,18 +297,119 @@ export async function updateBrewLog(
 ): Promise<BrewLog> {
   const parsedPatch = BrewLogUpdateSchema.parse(patch);
   ensurePatchHasKeys(parsedPatch, "沖煮紀錄更新");
-  const next = await updateEntity(db.brewRecordsV2, id, parsedPatch);
-  return BrewLogSchema.parse(next);
+
+  return db.transaction("rw", db.beansV2, db.brewRecordsV2, async () => {
+    const current = await getBrewRecordOrThrow(id);
+    if (current.deletedAt !== null) {
+      throw new Error("找不到可更新的沖煮紀錄。");
+    }
+
+    const nextBeanId = parsedPatch.beanId ?? current.beanId;
+    const nextInventoryDeductedGrams = parsedPatch.dose ?? getInventoryDeductedGrams(current);
+    const currentInventoryDeductedGrams = getInventoryDeductedGrams(current);
+    const syncStatus = resolveUpdatedSyncStatus(current.syncStatus);
+    const inventoryChanged =
+      nextBeanId !== current.beanId ||
+      nextInventoryDeductedGrams !== currentInventoryDeductedGrams;
+
+    const nextRecord = BrewLogSchema.parse({
+      ...current,
+      ...parsedPatch,
+      beanId: nextBeanId,
+      grinderId: parsedPatch.grinderId ?? current.grinderId ?? null,
+      filterId: parsedPatch.filterId ?? current.filterId ?? null,
+      inventoryDeductedGrams: nextInventoryDeductedGrams,
+      updatedAt: Date.now(),
+      syncStatus,
+    });
+
+    const oldBean = await getActiveBeanOrThrow(current.beanId);
+    const nextBean =
+      nextBeanId === current.beanId
+        ? oldBean
+        : await getActiveBeanOrThrow(nextBeanId);
+
+    if (inventoryChanged) {
+      const refundedOldBean = applyBeanInventoryDelta(
+        oldBean,
+        -currentInventoryDeductedGrams
+      );
+      const deductedNextBean =
+        nextBeanId === current.beanId
+          ? applyBeanInventoryDelta(refundedOldBean, nextInventoryDeductedGrams)
+          : applyBeanInventoryDelta(nextBean, nextInventoryDeductedGrams);
+
+      if (nextBeanId === current.beanId) {
+        await db.beansV2.put(deductedNextBean);
+      } else {
+        await db.beansV2.put(refundedOldBean);
+        await db.beansV2.put(deductedNextBean);
+      }
+    }
+
+    await db.brewRecordsV2.put(nextRecord);
+
+    return nextRecord;
+  });
 }
 
 export async function deleteBrewLog(id: string) {
-  const result = await deleteEntity(db.brewRecordsV2, id);
-  return result ? BrewLogSchema.parse(result) : null;
+  return db.transaction("rw", db.beansV2, db.brewRecordsV2, async () => {
+    const current = await getBrewRecordOrThrow(id);
+
+    if (current.deletedAt !== null) {
+      throw new Error("找不到可刪除的沖煮紀錄。");
+    }
+
+    const inventoryDeductedGrams = getInventoryDeductedGrams(current);
+    const bean = await getActiveBeanOrThrow(current.beanId);
+    const refundedBean = applyBeanInventoryDelta(bean, -inventoryDeductedGrams);
+
+    if (current.syncStatus === "local") {
+      await db.beansV2.put(refundedBean);
+      await db.brewRecordsV2.delete(id);
+
+      return null;
+    }
+
+    const next = BrewLogSchema.parse({
+      ...current,
+      deletedAt: Date.now(),
+      updatedAt: Date.now(),
+      syncStatus: "pending_delete",
+    });
+
+    await db.beansV2.put(refundedBean);
+    await db.brewRecordsV2.put(next);
+
+    return next;
+  });
 }
 
 export async function restoreBrewLog(id: string): Promise<BrewLog> {
-  const next = await restoreEntity(db.brewRecordsV2, id);
-  return BrewLogSchema.parse(next);
+  return db.transaction("rw", db.beansV2, db.brewRecordsV2, async () => {
+    const current = await db.brewRecordsV2.get(id);
+
+    if (!current || current.deletedAt === null) {
+      throw new Error("找不到可復原的沖煮紀錄。");
+    }
+
+    const parsedCurrent = BrewLogSchema.parse(current);
+    const inventoryDeductedGrams = getInventoryDeductedGrams(parsedCurrent);
+    const bean = await getActiveBeanOrThrow(parsedCurrent.beanId);
+    const deductedBean = applyBeanInventoryDelta(bean, inventoryDeductedGrams);
+    const next = BrewLogSchema.parse({
+      ...parsedCurrent,
+      deletedAt: null,
+      updatedAt: Date.now(),
+      syncStatus: resolveRestoreSyncStatus(parsedCurrent.syncStatus),
+    });
+
+    await db.beansV2.put(deductedBean);
+    await db.brewRecordsV2.put(next);
+
+    return next;
+  });
 }
 
 export async function getActiveBeans(): Promise<Bean[]> {

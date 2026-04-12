@@ -56,6 +56,21 @@ type BrewRecordV3Compat = BrewRecord & {
   filterId?: string | null;
 };
 
+type LegacySensoryRating = Partial<
+  Record<"acidity" | "sweetness" | "body" | "bitterness", number>
+>;
+
+type BrewRecordV7Compat = Partial<BrewRecord> & {
+  id: string;
+  dose: number;
+  inventoryDeductedGrams?: number;
+  rating?: LegacySensoryRating | null;
+  acidity?: number;
+  sweetness?: number;
+  body?: number;
+  bitterness?: number;
+};
+
 type BeanV4Compat = Partial<CoffeeBean> & {
   id: string;
   createdAt: number;
@@ -63,6 +78,61 @@ type BeanV4Compat = Partial<CoffeeBean> & {
   deletedAt?: number | null;
   syncStatus?: CoffeeBean["syncStatus"];
 };
+
+function resolveSensoryValue(
+  currentValue: unknown,
+  legacyValue: unknown,
+  fallback = 3
+) {
+  if (typeof currentValue === "number" && Number.isFinite(currentValue)) {
+    return currentValue;
+  }
+
+  if (typeof legacyValue === "number" && Number.isFinite(legacyValue)) {
+    return legacyValue;
+  }
+
+  return fallback;
+}
+
+async function backfillBrewRecordInventoryAndSensory(
+  tx: Dexie.Transaction
+) {
+  const brewRecords = (await tx
+    .table("brewRecordsV2")
+    .toArray()) as BrewRecordV7Compat[];
+
+  await tx.table("brewRecordsV2").bulkPut(
+    brewRecords.map((record) => {
+      const legacyRating =
+        typeof record.rating === "object" && record.rating !== null
+          ? record.rating
+          : null;
+
+      return {
+        ...record,
+        acidity: resolveSensoryValue(
+          record.acidity,
+          legacyRating?.acidity
+        ),
+        sweetness: resolveSensoryValue(
+          record.sweetness,
+          legacyRating?.sweetness
+        ),
+        body: resolveSensoryValue(
+          record.body,
+          legacyRating?.body
+        ),
+        bitterness: resolveSensoryValue(
+          record.bitterness,
+          legacyRating?.bitterness
+        ),
+        inventoryDeductedGrams:
+          record.inventoryDeductedGrams ?? record.dose,
+      };
+    })
+  );
+}
 
 class CoffeeLogDB extends Dexie {
   beansV2!: Table<CoffeeBean, string>;
@@ -266,6 +336,26 @@ class CoffeeLogDB extends Dexie {
           beans.map((bean) => normalizeBeanRecord(bean))
         );
       });
+
+    this.version(7)
+      .stores({
+        beansV2:
+          "&id, createdAt, updatedAt, deletedAt, syncStatus, status, roastDate, peakDate",
+        equipmentsV2: "&id, createdAt, updatedAt, deletedAt, syncStatus, type",
+        brewRecordsV2:
+          "&id, beanId, equipmentId, grinderId, filterId, createdAt, updatedAt, deletedAt, syncStatus",
+      })
+      .upgrade(backfillBrewRecordInventoryAndSensory);
+
+    this.version(8)
+      .stores({
+        beansV2:
+          "&id, createdAt, updatedAt, deletedAt, syncStatus, status, roastDate, peakDate",
+        equipmentsV2: "&id, createdAt, updatedAt, deletedAt, syncStatus, type",
+        brewRecordsV2:
+          "&id, beanId, equipmentId, grinderId, filterId, createdAt, updatedAt, deletedAt, syncStatus",
+      })
+      .upgrade(backfillBrewRecordInventoryAndSensory);
   }
 }
 

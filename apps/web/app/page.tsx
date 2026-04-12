@@ -11,7 +11,7 @@ import {
   ChartColumn,
   Droplets,
   FlaskConical,
-  Settings,
+  HelpCircle,
   Sparkles,
   X,
   type LucideIcon,
@@ -22,7 +22,6 @@ import SweetSpotScatterPlot from "@/components/analytics/SweetSpotScatterPlot";
 import { getActiveAnalyticsRecords } from "@/hooks/useBrewData";
 import {
   buildAnalyticsSnapshot,
-  type AnalyticsSnapshot,
   formatDateInputValue,
   type AnalyticsRange,
   type AnalyticsRecord,
@@ -40,6 +39,10 @@ type Action = {
 };
 
 type InsightTab = "low" | "best" | "equipment";
+
+const supportHref =
+  process.env.NEXT_PUBLIC_SUPPORT_FORM_URL?.trim() || "/support";
+const supportIsExternal = /^https?:\/\//.test(supportHref);
 
 function buildInsightMessage({
   hasRecords,
@@ -395,7 +398,11 @@ export default function HomePage() {
     formatDateInputValue(Date.now() - 13 * 24 * 60 * 60 * 1000)
   );
   const [customEnd, setCustomEnd] = useState(() => formatDateInputValue(Date.now()));
-  const records = useLiveQuery<AnalyticsRecord[]>(() => getActiveAnalyticsRecords(), []) ?? [];
+  const recordsQuery = useLiveQuery<AnalyticsRecord[]>(
+    () => getActiveAnalyticsRecords(),
+    []
+  );
+  const records = useMemo(() => recordsQuery ?? [], [recordsQuery]);
   const latestRecord = records[0] ?? null;
 
   const actions: Action[] = [
@@ -469,11 +476,13 @@ export default function HomePage() {
         <div className="flex shrink-0 items-center gap-1.5">
           <ThemeToggle />
           <Link
-            href="/settings"
+            href={supportHref}
+            target={supportIsExternal ? "_blank" : undefined}
+            rel={supportIsExternal ? "noreferrer" : undefined}
             className="select-none inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border-subtle bg-dark-panel text-text-secondary shadow-sm transition-colors duration-200 hover:bg-dark-control hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35 active:scale-95"
-            aria-label="開啟設定"
+            aria-label="開啟支援"
           >
-            <Settings className="h-5 w-5" />
+            <HelpCircle className="h-5 w-5" />
           </Link>
         </div>
       </header>

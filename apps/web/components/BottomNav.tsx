@@ -7,10 +7,14 @@ import {
   Compass,
   Droplets,
   FlaskConical,
+  HelpCircle,
   Microscope,
-  Settings,
   type LucideIcon,
 } from "lucide-react";
+
+const supportHref =
+  process.env.NEXT_PUBLIC_SUPPORT_FORM_URL?.trim() || "/support";
+const supportIsExternal = /^https?:\/\//.test(supportHref);
 
 const items = [
   { href: "/", icon: Compass, label: "首頁" },
@@ -18,10 +22,19 @@ const items = [
   { href: "/equipment", icon: FlaskConical, label: "器具" },
   { href: "/brew/new", icon: Droplets, label: "沖煮" },
   { href: "/records", icon: Microscope, label: "紀錄" },
-  { href: "/settings", icon: Settings, label: "設定" },
+  {
+    href: supportHref,
+    icon: HelpCircle,
+    label: "支援",
+    external: supportIsExternal,
+  },
 ];
 
-function isActive(pathname: string, href: string) {
+function isActive(pathname: string, href: string, external?: boolean) {
+  if (external) {
+    return false;
+  }
+
   if (href === "/") {
     return pathname === "/";
   }
@@ -40,7 +53,7 @@ export default function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-subtle bg-dark-surface/88 px-2 pb-[calc(env(safe-area-inset-bottom)+0.35rem)] pt-2 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-2xl items-end justify-between gap-1">
         {items.map((item) => {
-          const active = isActive(pathname, item.href);
+          const active = isActive(pathname, item.href, item.external);
           const Icon = item.icon as LucideIcon;
           const isCoreAction = item.href === "/brew/new";
 
@@ -48,6 +61,8 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              target={item.external ? "_blank" : undefined}
+              rel={item.external ? "noreferrer" : undefined}
               className={`select-none relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-1.5 text-[11px] font-medium transition duration-200 active:scale-95 ${
                 active ? "text-primary-default" : "text-dark-muted hover:text-text-secondary"
               }`}

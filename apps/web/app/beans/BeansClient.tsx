@@ -64,6 +64,13 @@ function resolvePeakPredictionEndpoint() {
     return explicitEndpoint;
   }
 
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_URL?.trim() || "http://127.0.0.1:3001";
+
+  if (apiBaseUrl) {
+    return `${apiBaseUrl.replace(/\/$/, "")}/api/beans/predict-peak`;
+  }
+
   const chatEndpoint = process.env.NEXT_PUBLIC_AI_CHAT_ENDPOINT?.trim() ?? "";
 
   if (chatEndpoint.endsWith("/api/chat")) {
@@ -131,6 +138,7 @@ export default function BeansClient() {
     setError(null);
 
     try {
+      console.log("Peak Prediction Endpoint:", peakPredictionEndpoint);
       const response = await fetch(peakPredictionEndpoint, {
         method: "POST",
         headers: {
@@ -142,7 +150,9 @@ export default function BeansClient() {
           roastLevel,
         }),
       });
-      const payload = (await response.json()) as unknown;
+      console.log("Response Status:", response.status);
+      const payload = (await response.json().catch(() => null)) as unknown;
+      console.log("Received Data:", payload);
 
       if (!response.ok) {
         const message =
@@ -151,8 +161,12 @@ export default function BeansClient() {
           "error" in payload &&
           typeof payload.error === "string"
             ? payload.error
-            : "AI 養豆預測失敗。";
+            : "API 沒回應";
         throw new Error(message);
+      }
+
+      if (payload === null) {
+        throw new Error("AI 預測 API 回傳空資料。");
       }
 
       const parsed = PeakPredictionResponseSchema.parse(payload);
@@ -170,6 +184,7 @@ export default function BeansClient() {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "AI 養豆預測失敗。";
+      console.error("Peak prediction failed:", err);
       setError(message);
       await triggerWarningNotification();
     } finally {

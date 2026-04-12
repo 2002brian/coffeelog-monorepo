@@ -4,7 +4,6 @@ import {
   ChangeEvent,
   FormEvent,
   ReactNode,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -159,6 +158,49 @@ function sanitizePrefillText(value: string | null) {
   return value?.trim() ?? "";
 }
 
+function formatGrams(value: number) {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+
+  const normalized = Number(value.toFixed(1));
+  return Number.isInteger(normalized)
+    ? String(normalized)
+    : normalized.toFixed(1).replace(/\.0$/, "");
+}
+
+function resolveBeanRemainingWeight(bean: {
+  remainingWeight?: number | null;
+  totalWeight?: number | null;
+}) {
+  const candidate =
+    typeof bean.remainingWeight === "number" && Number.isFinite(bean.remainingWeight)
+      ? bean.remainingWeight
+      : typeof bean.totalWeight === "number" && Number.isFinite(bean.totalWeight)
+        ? bean.totalWeight
+        : null;
+
+  if (candidate === null || candidate < 0) {
+    return null;
+  }
+
+  return candidate;
+}
+
+function formatBeanOptionLabel(bean: {
+  name: string;
+  remainingWeight?: number | null;
+  totalWeight?: number | null;
+}) {
+  const remainingWeight = resolveBeanRemainingWeight(bean);
+
+  if (remainingWeight === null) {
+    return `${bean.name} (庫存未知)`;
+  }
+
+  return `${bean.name} (剩餘 ${formatGrams(remainingWeight)}g)`;
+}
+
 function splitSecondsParam(value: string | null) {
   if (!value) {
     return { minutes: "", seconds: "" };
@@ -301,19 +343,20 @@ export default function BrewFormClient() {
     body: 3,
     bitterness: 3,
   });
-  const [doseInput, setDoseInput] = useState("");
-  const [waterInput, setWaterInput] = useState("");
-  const [temperatureInput, setTemperatureInput] = useState("");
-  const [grindSizeInput, setGrindSizeInput] = useState("");
-  const [brewMinutes, setBrewMinutes] = useState("");
-  const [brewSeconds, setBrewSeconds] = useState("");
-  const [bloomMinutes, setBloomMinutes] = useState("");
-  const [bloomSeconds, setBloomSeconds] = useState("");
-  const [selectedBeanId, setSelectedBeanId] = useState("");
-  const [selectedEquipmentId, setSelectedEquipmentId] = useState("");
-  const [selectedGrinderId, setSelectedGrinderId] = useState("");
-  const [selectedFilterId, setSelectedFilterId] = useState("");
+  const [doseInput, setDoseInput] = useState(prefilledDose);
+  const [waterInput, setWaterInput] = useState(prefilledWater);
+  const [temperatureInput, setTemperatureInput] = useState(prefilledTemperature);
+  const [grindSizeInput, setGrindSizeInput] = useState(prefilledGrindSize);
+  const [brewMinutes, setBrewMinutes] = useState(prefilledBrewClock.minutes);
+  const [brewSeconds, setBrewSeconds] = useState(prefilledBrewClock.seconds);
+  const [bloomMinutes, setBloomMinutes] = useState(prefilledBloomClock.minutes);
+  const [bloomSeconds, setBloomSeconds] = useState(prefilledBloomClock.seconds);
+  const [selectedBeanId, setSelectedBeanId] = useState(beanIdParam);
+  const [selectedEquipmentId, setSelectedEquipmentId] = useState(equipmentIdParam);
+  const [selectedGrinderId, setSelectedGrinderId] = useState(grinderIdParam);
+  const [selectedFilterId, setSelectedFilterId] = useState(filterIdParam);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const beans = useLiveQuery(
     () =>
       getActiveBeans().then((items) =>
@@ -321,6 +364,9 @@ export default function BrewFormClient() {
           id: bean.id,
           name: bean.name,
           roastLevel: bean.roastLevel,
+          remainingWeight: bean.remainingWeight,
+          totalWeight: bean.totalWeight,
+          status: bean.status,
         }))
       ),
     []
@@ -345,12 +391,35 @@ export default function BrewFormClient() {
     beanIdParam && beans?.some((bean) => bean.id === beanIdParam)
       ? beanIdParam
       : "";
+  const selectedBeanValue =
+    selectedBeanId && beans?.some((bean) => bean.id === selectedBeanId)
+      ? selectedBeanId
+      : defaultBeanId;
+  const availableBeanCount = (beans ?? []).filter((bean) => {
+    const remainingWeight = resolveBeanRemainingWeight(bean);
+    return bean.status !== "ARCHIVED" && remainingWeight !== 0;
+  }).length;
   const defaultEquipment =
     dripperOptions.length > 0
       ? dripperOptions[0].id
       : equipmentOptions && equipmentOptions.length > 0
         ? equipmentOptions[0].id
         : "";
+  const selectedEquipmentValue =
+    selectedEquipmentId &&
+    equipmentOptions?.some((equipment) => equipment.id === selectedEquipmentId)
+      ? selectedEquipmentId
+      : defaultEquipment;
+  const selectedGrinderValue =
+    selectedGrinderId &&
+    grinderOptions.some((equipment) => equipment.id === selectedGrinderId)
+      ? selectedGrinderId
+      : "";
+  const selectedFilterValue =
+    selectedFilterId &&
+    filterOptions.some((equipment) => equipment.id === selectedFilterId)
+      ? selectedFilterId
+      : "";
   const isSaving = submitState === "saving";
   const ratioPreview = useMemo(() => {
     const dose = parseDecimalInput(doseInput);
@@ -373,127 +442,6 @@ export default function BrewFormClient() {
   const brewClock = formatClock(brewMinutes, brewSeconds);
   const bloomClock =
     bloomMinutes || bloomSeconds ? formatClock(bloomMinutes, bloomSeconds) : "00:00";
-
-  useEffect(() => {
-    if (selectedBeanId || !defaultBeanId) {
-      return;
-    }
-
-    setSelectedBeanId(defaultBeanId);
-  }, [defaultBeanId, selectedBeanId]);
-
-  useEffect(() => {
-    const hasSelectedEquipment =
-      selectedEquipmentId &&
-      equipmentOptions?.some((equipment) => equipment.id === selectedEquipmentId);
-
-    if (hasSelectedEquipment || !defaultEquipment) {
-      return;
-    }
-
-    setSelectedEquipmentId(defaultEquipment);
-  }, [defaultEquipment, equipmentOptions, selectedEquipmentId]);
-
-  useEffect(() => {
-    const hasSelectedGrinder =
-      selectedGrinderId &&
-      grinderOptions.some((equipment) => equipment.id === selectedGrinderId);
-
-    if (hasSelectedGrinder) {
-      return;
-    }
-
-    if (grinderIdParam && grinderOptions.some((equipment) => equipment.id === grinderIdParam)) {
-      setSelectedGrinderId(grinderIdParam);
-    }
-  }, [grinderIdParam, grinderOptions, selectedGrinderId]);
-
-  useEffect(() => {
-    const hasSelectedFilter =
-      selectedFilterId && filterOptions.some((equipment) => equipment.id === selectedFilterId);
-
-    if (hasSelectedFilter) {
-      return;
-    }
-
-    if (filterIdParam && filterOptions.some((equipment) => equipment.id === filterIdParam)) {
-      setSelectedFilterId(filterIdParam);
-    }
-  }, [filterIdParam, filterOptions, selectedFilterId]);
-
-  useEffect(() => {
-    if (!beans || !equipmentOptions) {
-      return;
-    }
-
-    const hasRecipePrefill =
-      Boolean(beanIdParam) ||
-      Boolean(equipmentIdParam) ||
-      Boolean(grinderIdParam) ||
-      Boolean(filterIdParam) ||
-      Boolean(prefilledDose) ||
-      Boolean(prefilledWater) ||
-      Boolean(prefilledTemperature) ||
-      Boolean(prefilledGrindSize) ||
-      Boolean(prefilledBrewClock.minutes) ||
-      Boolean(prefilledBrewClock.seconds) ||
-      Boolean(prefilledBloomClock.minutes) ||
-      Boolean(prefilledBloomClock.seconds);
-
-    if (!hasRecipePrefill) {
-      return;
-    }
-
-    if (beanIdParam && beans.some((bean) => bean.id === beanIdParam)) {
-      setSelectedBeanId(beanIdParam);
-    }
-
-    if (
-      equipmentIdParam &&
-      equipmentOptions.some((equipment) => equipment.id === equipmentIdParam)
-    ) {
-      setSelectedEquipmentId(equipmentIdParam);
-    }
-
-    if (
-      grinderIdParam &&
-      equipmentOptions.some((equipment) => equipment.id === grinderIdParam)
-    ) {
-      setSelectedGrinderId(grinderIdParam);
-    }
-
-    if (
-      filterIdParam &&
-      equipmentOptions.some((equipment) => equipment.id === filterIdParam)
-    ) {
-      setSelectedFilterId(filterIdParam);
-    }
-
-    setDoseInput(prefilledDose);
-    setWaterInput(prefilledWater);
-    setTemperatureInput(prefilledTemperature);
-    setGrindSizeInput(prefilledGrindSize);
-    setBrewMinutes(prefilledBrewClock.minutes);
-    setBrewSeconds(prefilledBrewClock.seconds);
-    setBloomMinutes(prefilledBloomClock.minutes);
-    setBloomSeconds(prefilledBloomClock.seconds);
-    setActivePresetId(null);
-  }, [
-    beanIdParam,
-    beans,
-    equipmentIdParam,
-    filterIdParam,
-    equipmentOptions,
-    grinderIdParam,
-    prefilledBloomClock.minutes,
-    prefilledBloomClock.seconds,
-    prefilledBrewClock.minutes,
-    prefilledBrewClock.seconds,
-    prefilledDose,
-    prefilledGrindSize,
-    prefilledTemperature,
-    prefilledWater,
-  ]);
 
   function applyQuickPreset(preset: QuickPreset) {
     const nextEquipmentId = resolvePresetEquipmentId(
@@ -568,6 +516,7 @@ export default function BrewFormClient() {
     await triggerLightImpact();
     setSubmitState("saving");
     setError(null);
+    setSuccessMessage(null);
 
     try {
       await addBrewLog({
@@ -587,6 +536,7 @@ export default function BrewFormClient() {
         bitterness,
         feedback,
       });
+      setSuccessMessage(`已記錄沖煮，並從庫存扣除 ${formatGrams(dose)}g。`);
       await triggerSuccessNotification();
       setSubmitState("success");
       await new Promise((resolve) => window.setTimeout(resolve, 900));
@@ -596,6 +546,7 @@ export default function BrewFormClient() {
         err instanceof Error ? err.message : "建立沖煮紀錄時發生錯誤。";
       setError(message);
       setSubmitState("idle");
+      setSuccessMessage(null);
       await triggerWarningNotification();
     }
   }
@@ -615,6 +566,16 @@ export default function BrewFormClient() {
       <section className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200">
         <p className="text-sm leading-6 text-text-secondary">
           目前沒有可用的咖啡豆資料，請先前往新增咖啡豆。
+        </p>
+      </section>
+    );
+  }
+
+  if (availableBeanCount === 0) {
+    return (
+      <section className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200">
+        <p className="text-sm leading-6 text-text-secondary">
+          目前沒有可沖煮的咖啡豆。請先補充庫存，或啟用仍有剩餘重量的咖啡豆。
         </p>
       </section>
     );
@@ -692,7 +653,7 @@ export default function BrewFormClient() {
           <select
             name="beanId"
             required
-            value={selectedBeanId || defaultBeanId}
+            value={selectedBeanValue}
             onChange={(event) => {
               setSelectedBeanId(event.target.value);
               setActivePresetId(null);
@@ -703,11 +664,17 @@ export default function BrewFormClient() {
             <option value="" disabled>
               請選擇咖啡豆
             </option>
-            {beans.map((bean) => (
-              <option key={bean.id} value={bean.id}>
-                {bean.name} ({bean.roastLevel})
-              </option>
-            ))}
+            {beans.map((bean) => {
+              const remainingWeight = resolveBeanRemainingWeight(bean);
+              const isDisabled =
+                bean.status === "ARCHIVED" || remainingWeight === 0;
+
+              return (
+                <option key={bean.id} value={bean.id} disabled={isDisabled}>
+                  {formatBeanOptionLabel(bean)}
+                </option>
+              );
+            })}
           </select>
         </FieldRow>
       </GroupedSection>
@@ -717,7 +684,7 @@ export default function BrewFormClient() {
           <select
             name="equipmentId"
             required
-            value={selectedEquipmentId || defaultEquipment}
+            value={selectedEquipmentValue}
             onChange={(event) => {
               setSelectedEquipmentId(event.target.value);
               setActivePresetId(null);
@@ -736,7 +703,7 @@ export default function BrewFormClient() {
         <FieldRow label="磨豆機">
           <select
             name="grinderId"
-            value={selectedGrinderId}
+            value={selectedGrinderValue}
             onChange={(event) => {
               setSelectedGrinderId(event.target.value);
               setActivePresetId(null);
@@ -756,7 +723,7 @@ export default function BrewFormClient() {
         <FieldRow label="濾紙" isLast>
           <select
             name="filterId"
-            value={selectedFilterId}
+            value={selectedFilterValue}
             onChange={(event) => {
               setSelectedFilterId(event.target.value);
               setActivePresetId(null);
@@ -993,6 +960,22 @@ export default function BrewFormClient() {
             <div>
               <p className="text-sm font-semibold text-status-error">表單尚未成功送出</p>
               <p className="mt-1 text-sm leading-6 text-status-error">{error}</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {successMessage ? (
+        <div className="fixed bottom-4 left-1/2 z-50 w-[min(92vw,26rem)] -translate-x-1/2 rounded-2xl border border-status-success/20 bg-status-success/95 px-4 py-3 text-primary-foreground shadow-lg shadow-black/20 backdrop-blur-sm">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-primary-foreground/12">
+              <CheckCircle2 className="h-4.5 w-4.5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">沖煮紀錄已儲存</p>
+              <p className="mt-1 text-sm leading-6 text-primary-foreground/90">
+                {successMessage}
+              </p>
             </div>
           </div>
         </div>

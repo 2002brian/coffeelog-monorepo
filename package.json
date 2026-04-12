@@ -5,9 +5,14 @@
     "dev": "concurrently -c \"cyan,magenta\" -n \"WEB,API\" \"npm run dev:web\" \"npm run dev:api\"",
     "dev:web": "npm run dev --workspace apps/web",
     "dev:api": "npm run dev --workspace apps/api",
+    "build": "npm run build:all",
     "build:web": "npm run build --workspace apps/web",
     "build:api": "npm run build --workspace apps/api",
-    "build:all": "npm run build --workspaces --if-present"
+    "build:all": "npm run build --workspaces --if-present",
+    "cap:sync:ios": "npm exec --workspace apps/web cap sync ios",
+    "cap:sync:android": "npm exec --workspace apps/web cap sync android",
+    "cap:open:ios": "npm exec --workspace apps/web cap open ios",
+    "cap:open:android": "npm exec --workspace apps/web cap open android"
   },
   "workspaces": [
     "apps/*",
