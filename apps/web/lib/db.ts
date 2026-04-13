@@ -1,4 +1,4 @@
-import Dexie, { type Table } from "dexie";
+import Dexie, { type Table, type Transaction } from "dexie";
 import {
   type Bean as CoffeeBean,
   type BrewLog as BrewRecord,
@@ -96,7 +96,7 @@ function resolveSensoryValue(
 }
 
 async function backfillBrewRecordInventoryAndSensory(
-  tx: Dexie.Transaction
+  tx: Transaction
 ) {
   const brewRecords = (await tx
     .table("brewRecordsV2")
