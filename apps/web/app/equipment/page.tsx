@@ -46,7 +46,7 @@ export default function EquipmentPage() {
   }, [equipments]);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 bg-dark-page px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
+    <main className="mx-auto max-w-5xl space-y-6 bg-transparent px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
       <header className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-[1.65rem] font-bold tracking-tight text-text-primary">
@@ -66,11 +66,11 @@ export default function EquipmentPage() {
       </header>
 
       {equipments === undefined ? (
-        <section className="rounded-2xl border border-border-subtle bg-dark-panel px-4 py-4 text-sm text-text-secondary shadow-sm transition-colors duration-200">
+        <section className="glass-panel ui-rhythm rounded-2xl px-4 py-4 text-sm text-text-secondary">
           正在從本地資料庫載入器具資料。
         </section>
       ) : equipments.length === 0 ? (
-        <section className="rounded-2xl border border-border-subtle bg-dark-panel px-4 py-4 text-sm text-text-secondary shadow-sm transition-colors duration-200">
+        <section className="glass-panel ui-rhythm rounded-2xl px-4 py-4 text-sm text-text-secondary">
           尚未建立任何器具。
         </section>
       ) : (
@@ -78,7 +78,7 @@ export default function EquipmentPage() {
           {groupedEquipments.map((group) => (
             <section key={group.type} className="space-y-2">
               <SectionEyebrow>{group.type}</SectionEyebrow>
-              <div className="overflow-hidden rounded-2xl border border-border-subtle bg-dark-panel shadow-sm transition-colors duration-200">
+              <div className="glass-panel ui-rhythm overflow-hidden rounded-2xl">
                 <div className="border-b border-border-subtle px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -89,7 +89,7 @@ export default function EquipmentPage() {
                         {group.description}
                       </p>
                     </div>
-                    <span className="shrink-0 rounded-full border border-border-subtle bg-dark-control px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors duration-200">
+                    <span className="glass-chip ui-rhythm shrink-0 rounded-full px-2.5 py-1 text-[13px] font-medium text-text-secondary">
                       {group.items.length} 件
                     </span>
                   </div>
@@ -100,18 +100,18 @@ export default function EquipmentPage() {
                     <Link
                       key={equipment.id}
                       href={`/equipment/new?id=${equipment.id}`}
-                      className="flex min-h-14 items-center justify-between gap-4 px-4 py-3 transition-colors duration-200 hover:bg-dark-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
+                      className="flex min-h-14 items-center justify-between gap-4 px-4 py-3 transition-colors duration-200 hover:bg-white/4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
                     >
                       <div className="min-w-0 flex-1">
                         <h3 className="truncate text-sm font-semibold text-text-primary">
                           {equipment.name}
                         </h3>
-                        <p className="mt-1 truncate text-xs leading-5 text-text-secondary">
+                        <p className="mt-1 truncate text-sm leading-5 text-text-secondary">
                           {equipment.brand ?? "未填寫品牌"} · {formatDate(equipment.createdAt)}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        <span className="rounded-full border border-border-subtle bg-dark-control px-2.5 py-1 text-[11px] font-medium text-text-secondary transition-colors duration-200">
+                        <span className="glass-chip ui-rhythm rounded-full px-2.5 py-1 text-[13px] font-medium text-text-secondary">
                           {equipment.brand ?? "未填寫"}
                         </span>
                         <ChevronRight className="h-4 w-4 text-text-secondary" />

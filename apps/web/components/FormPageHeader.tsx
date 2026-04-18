@@ -28,10 +28,10 @@ export default function FormPageHeader({
       </button>
 
       <div className="space-y-2">
-        <h1 className="text-[1.65rem] font-bold tracking-tight text-text-primary">
+        <h1 className="type-section text-text-primary">
           {title}
         </h1>
-        <p className="text-sm leading-6 text-text-secondary">
+        <p className="type-secondary text-text-secondary">
           {description}
         </p>
       </div>

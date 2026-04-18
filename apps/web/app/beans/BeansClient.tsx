@@ -264,7 +264,7 @@ export default function BeansClient() {
   }
 
   return (
-    <section className="rounded-2xl border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200">
+    <section className="glass-panel ui-rhythm rounded-2xl px-4 py-4">
       <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
         <input type="hidden" name="status" value="RESTING" />
 
@@ -273,7 +273,7 @@ export default function BeansClient() {
           <input
             name="name"
             required
-            className="rounded-xl border border-border-subtle bg-dark-control px-4 py-3 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
+            className="glass-chip ui-rhythm rounded-xl px-4 py-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
             placeholder="Ethiopia Yirgacheffe"
           />
         </label>
@@ -288,7 +288,7 @@ export default function BeansClient() {
               setOrigin(event.target.value);
               resetPrediction();
             }}
-            className="rounded-xl border border-border-subtle bg-dark-control px-4 py-3 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
+            className="glass-chip ui-rhythm rounded-xl px-4 py-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
             placeholder="Ethiopia"
           />
         </label>
@@ -303,7 +303,7 @@ export default function BeansClient() {
               setRoastLevel(event.target.value);
               resetPrediction();
             }}
-            className="rounded-xl border border-border-subtle bg-dark-control px-4 py-3 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
+            className="glass-chip ui-rhythm rounded-xl px-4 py-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
             placeholder="Light / Medium / Dark"
           />
         </label>
@@ -318,7 +318,7 @@ export default function BeansClient() {
               setProcess(event.target.value);
               resetPrediction();
             }}
-            className="rounded-xl border border-border-subtle bg-dark-control px-4 py-3 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
+            className="glass-chip ui-rhythm rounded-xl px-4 py-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
             placeholder="Washed / Natural / Honey"
           />
         </label>
@@ -333,7 +333,7 @@ export default function BeansClient() {
             required
             value={totalWeight}
             onChange={(event) => setTotalWeight(event.target.value)}
-            className="rounded-xl border border-border-subtle bg-dark-control px-4 py-3 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
+            className="glass-chip ui-rhythm rounded-xl px-4 py-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
             placeholder="250"
           />
         </label>
@@ -346,7 +346,7 @@ export default function BeansClient() {
             required
             value={roastDate}
             onChange={(event) => setRoastDate(event.target.value)}
-            className="rounded-xl border border-border-subtle bg-dark-control px-4 py-3 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
+            className="glass-chip ui-rhythm rounded-xl px-4 py-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
           />
         </label>
 
@@ -355,19 +355,19 @@ export default function BeansClient() {
           <textarea
             name="notes"
             rows={3}
-            className="rounded-xl border border-border-subtle bg-dark-control px-4 py-3 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
+            className="glass-chip ui-rhythm rounded-xl px-4 py-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-default/35"
             placeholder="Floral, citrus, tea-like body..."
           />
         </label>
 
         {canPredict ? (
-          <div className="sm:col-span-2 rounded-2xl border border-border-subtle bg-dark-control px-4 py-4">
+          <div className="glass-panel-strong ui-rhythm sm:col-span-2 rounded-2xl px-4 py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-text-primary">
                   AI 養豆預測
                 </p>
-                <p className="text-xs leading-5 text-text-secondary">
+                <p className="text-sm leading-5 text-text-secondary">
                   根據產區、處理法與烘焙度推算建議養豆天數，並自動計算最佳賞味日。
                 </p>
               </div>
@@ -375,7 +375,7 @@ export default function BeansClient() {
                 type="button"
                 onClick={onPredictPeak}
                 disabled={isPredicting || !roastDate}
-                className="inline-flex items-center justify-center rounded-xl border border-border-subtle bg-dark-panel px-4 py-2.5 text-sm font-semibold text-text-primary transition-colors duration-200 hover:bg-dark-panel/80 disabled:cursor-not-allowed disabled:opacity-60"
+                className="glass-chip ui-rhythm inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-text-primary hover:bg-white/6 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isPredicting ? "預測中..." : "取得 AI 建議"}
               </button>
@@ -385,7 +385,7 @@ export default function BeansClient() {
               <div className="mt-4 space-y-3">
                 <div className="grid gap-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
                   <div className="rounded-2xl border border-amber-500/25 bg-amber-500/8 px-4 py-4">
-                    <p className="text-[11px] font-semibold tracking-[0.18em] text-amber-200/80">
+                    <p className="text-[13px] font-semibold tracking-[0.18em] text-amber-200/80">
                       AI 建議
                     </p>
                     <div className="mt-2 flex items-end gap-2">
@@ -401,27 +401,27 @@ export default function BeansClient() {
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-border-subtle bg-dark-panel px-4 py-4">
-                    <p className="text-xs font-medium text-text-secondary">
+                  <div className="glass-chip ui-rhythm rounded-2xl px-4 py-4">
+                    <p className="text-[13px] font-medium text-text-secondary">
                       最佳賞味日
                     </p>
                     <p className="mt-2 text-lg font-semibold text-text-primary">
                       {peakDate ? formatPeakDate(peakDate) : "尚未計算"}
                     </p>
-                    <p className="mt-3 text-xs leading-5 text-text-secondary">
+                    <p className="mt-3 text-sm leading-5 text-text-secondary">
                       若儲存在原生 App，送出後會於當天上午 9:00 排程提醒。
                     </p>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex rounded-full border border-border-subtle bg-dark-panel px-3 py-1.5 text-xs font-medium text-text-secondary">
+                  <span className="glass-chip ui-rhythm inline-flex rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary">
                     產區 {origin.trim()}
                   </span>
-                  <span className="inline-flex rounded-full border border-border-subtle bg-dark-panel px-3 py-1.5 text-xs font-medium text-text-secondary">
+                  <span className="glass-chip ui-rhythm inline-flex rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary">
                     處理法 {process.trim()}
                   </span>
-                  <span className="inline-flex rounded-full border border-border-subtle bg-dark-panel px-3 py-1.5 text-xs font-medium text-text-secondary">
+                  <span className="glass-chip ui-rhythm inline-flex rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary">
                     烘焙度 {roastLevel.trim()}
                   </span>
                 </div>

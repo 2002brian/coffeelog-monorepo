@@ -118,11 +118,11 @@ function RecordListRow({ record }: { record: RecordWithRelations }) {
   return (
     <Link
       href={`/records/detail?id=${record.id}`}
-      className="flex min-h-14 items-center gap-3 bg-dark-panel px-4 py-3 transition-colors duration-200 hover:bg-dark-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35"
+      className="glass-panel ui-rhythm flex min-h-14 items-center gap-3 rounded-[1.1rem] px-4 py-3 hover:bg-white/4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35"
       aria-label={`${record.bean?.name ?? "未命名咖啡豆"}，${formatDate(record.createdAt)}，${buildRecordSummary(record)}`}
     >
       <div className="flex w-14 shrink-0 flex-col items-start justify-center">
-        <span className="text-xs font-semibold text-text-secondary">
+        <span className="text-[13px] font-semibold text-text-secondary">
           {formatMonth(record.createdAt)}
         </span>
         <span className="mt-1 text-lg font-bold leading-none tabular-nums text-cta-primary">
@@ -134,13 +134,13 @@ function RecordListRow({ record }: { record: RecordWithRelations }) {
         <p className="truncate text-sm font-semibold text-text-primary">
           {record.bean?.name ?? "未命名咖啡豆"}
         </p>
-        <p className="mt-1 truncate text-xs leading-5 text-text-secondary">
+        <p className="mt-1 truncate text-sm leading-5 text-text-secondary">
           {buildRecordSummary(record)}
         </p>
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        <span className="hidden text-[11px] font-medium text-text-secondary sm:inline">
+        <span className="hidden text-[13px] font-medium text-text-secondary sm:inline">
           查看
         </span>
         <ChevronRight className="h-4 w-4 text-text-secondary" />
@@ -163,10 +163,10 @@ function QueryMenu({
   onSelect: (value: string) => void;
 }) {
   return (
-    <div className="absolute left-0 top-[calc(100%+0.5rem)] z-30 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border-subtle bg-dark-panel shadow-sm transition-colors duration-200">
+    <div className="glass-panel ui-rhythm absolute left-0 top-[calc(100%+0.5rem)] z-30 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl">
       <div className="border-b border-border-subtle px-4 py-3">
         <p className="text-sm font-semibold text-text-primary">{title}</p>
-        <p className="mt-1 text-xs leading-5 text-text-secondary">{description}</p>
+        <p className="mt-1 text-sm leading-5 text-text-secondary">{description}</p>
       </div>
 
       <div className="p-2">
@@ -180,8 +180,8 @@ function QueryMenu({
               onClick={() => onSelect(option.value)}
               className={`flex w-full items-start justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-200 ${
                 active
-                  ? "bg-dark-control text-text-primary"
-                  : "text-text-secondary hover:bg-dark-control/85 hover:text-text-primary"
+                  ? "glass-chip text-text-primary"
+                  : "text-text-secondary hover:bg-white/6 hover:text-text-primary"
               }`}
             >
               <div>
@@ -189,13 +189,13 @@ function QueryMenu({
                   {option.label}
                 </p>
                 {option.hint ? (
-                  <p className="mt-1 text-[11px] leading-5 text-text-secondary">
+                  <p className="mt-1 text-[13px] leading-5 text-text-secondary">
                     {option.hint}
                   </p>
                 ) : null}
               </div>
               {active ? (
-                <span className="mt-1 text-[11px] font-semibold text-cta-primary" aria-hidden="true">
+                <span className="mt-1 text-[13px] font-semibold text-cta-primary" aria-hidden="true">
                   已選取
                 </span>
               ) : null}
@@ -388,7 +388,7 @@ function RecordsPageContent() {
 
   if (records === undefined) {
     return (
-      <main className="mx-auto max-w-5xl space-y-6 bg-dark-page px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
+      <main className="mx-auto max-w-5xl space-y-6 bg-transparent px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
         <header className="space-y-2">
           <h1 className="text-[1.65rem] font-bold tracking-tight text-text-primary">
             歷史紀錄
@@ -398,7 +398,7 @@ function RecordsPageContent() {
           </p>
         </header>
 
-        <section className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-4 text-center shadow-sm transition-colors duration-200">
+        <section className="glass-panel ui-rhythm rounded-xl px-4 py-4 text-center">
           <p className="text-sm leading-6 text-text-secondary">
             載入中...
           </p>
@@ -408,14 +408,14 @@ function RecordsPageContent() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 bg-dark-page px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
+    <main className="mx-auto max-w-5xl space-y-6 bg-transparent px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
       {showRestoredToast ? (
-        <div className="fixed left-1/2 top-[calc(env(safe-area-inset-top)+1rem)] z-50 flex w-[min(92vw,32rem)] -translate-x-1/2 items-start justify-between gap-4 rounded-xl border border-status-success/20 bg-dark-panel px-4 py-3 text-sm font-medium text-status-success shadow-sm transition-colors duration-200">
+        <div className="glass-panel ui-rhythm fixed left-1/2 top-[calc(env(safe-area-inset-top)+1rem)] z-50 flex w-[min(92vw,32rem)] -translate-x-1/2 items-start justify-between gap-4 rounded-xl border-status-success/20 px-4 py-3 text-sm font-medium text-status-success">
           <p className="leading-6">資料還原完成，已套用到目前的本機紀錄。</p>
           <button
             type="button"
             onClick={handleCloseToast}
-            className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border-subtle bg-dark-control text-status-success transition-colors duration-200 hover:bg-dark-page active:scale-95"
+            className="glass-chip ui-rhythm mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-status-success hover:bg-white/6 active:scale-95"
             aria-label="關閉提示"
           >
             <X className="h-4 w-4" />
@@ -442,11 +442,11 @@ function RecordsPageContent() {
             onClick={() =>
               setOpenMenu((current) => (current === "filter" ? null : "filter"))
             }
-            className="inline-flex select-none items-center gap-2 rounded-xl border border-border-subtle bg-dark-panel px-4 py-2.5 text-sm font-medium text-text-secondary transition-colors duration-200 hover:bg-dark-control hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35 active:scale-95"
+            className="glass-chip ui-rhythm inline-flex select-none items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-white/6 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35 active:scale-95"
           >
             <Funnel className="h-4 w-4" />
             <span>篩選</span>
-            <span className="rounded-full bg-dark-control px-2 py-0.5 text-xs font-semibold text-text-primary">
+            <span className="glass-chip ui-rhythm rounded-full px-2 py-0.5 text-[13px] font-semibold text-text-primary">
               {getFilterLabel(filterOption, equipmentLabelMap)}
             </span>
           </button>
@@ -471,11 +471,11 @@ function RecordsPageContent() {
             onClick={() =>
               setOpenMenu((current) => (current === "sort" ? null : "sort"))
             }
-            className="inline-flex select-none items-center gap-2 rounded-xl border border-border-subtle bg-dark-panel px-4 py-2.5 text-sm font-medium text-text-secondary transition-colors duration-200 hover:bg-dark-control hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35 active:scale-95"
+            className="glass-chip ui-rhythm inline-flex select-none items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-white/6 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35 active:scale-95"
           >
             <SlidersHorizontal className="h-4 w-4" />
             <span>排序</span>
-            <span className="rounded-full bg-dark-control px-2 py-0.5 text-xs font-semibold text-text-primary">
+            <span className="glass-chip ui-rhythm rounded-full px-2 py-0.5 text-[13px] font-semibold text-text-primary">
               {getSortLabel(sortOption)}
             </span>
           </button>
@@ -496,7 +496,7 @@ function RecordsPageContent() {
       </div>
 
       {records.length === 0 ? (
-        <section className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-4 text-center shadow-sm transition-colors duration-200">
+        <section className="glass-panel ui-rhythm rounded-xl px-4 py-4 text-center">
           <h2 className="text-xl font-bold tracking-tight text-text-primary">
             尚未建立任何沖煮紀錄
           </h2>
@@ -505,7 +505,7 @@ function RecordsPageContent() {
           </p>
         </section>
       ) : visibleRecords.length === 0 ? (
-        <section className="overflow-hidden rounded-xl border border-border-subtle bg-dark-panel px-4 py-4 text-center shadow-sm transition-colors duration-200">
+        <section className="glass-panel ui-rhythm overflow-hidden rounded-xl px-4 py-4 text-center">
           <div className="mx-auto max-w-xl space-y-3">
             <h2 className="text-xl font-bold tracking-tight text-text-primary">
               目前沒有符合此條件的紀錄
@@ -526,8 +526,8 @@ function RecordsPageContent() {
           </div>
         </section>
       ) : (
-        <section className="overflow-hidden rounded-[1.1rem] border border-border-subtle bg-dark-panel shadow-sm transition-colors duration-200">
-          <div className="divide-y divide-border-subtle">
+        <section className="space-y-3">
+          <div className="space-y-3">
             {visibleRecords.map((record) => (
               <RecordListRow key={record.id} record={record} />
             ))}
@@ -542,7 +542,7 @@ export default function RecordsPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-5xl space-y-6 bg-dark-page px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
+        <main className="mx-auto max-w-5xl space-y-6 bg-transparent px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
           <header className="space-y-2">
             <h1 className="text-[1.65rem] font-bold tracking-tight text-text-primary">
               歷史紀錄
@@ -552,7 +552,7 @@ export default function RecordsPage() {
             </p>
           </header>
 
-          <section className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-4 text-center shadow-sm transition-colors duration-200">
+          <section className="glass-panel ui-rhythm rounded-xl px-4 py-4 text-center">
             <p className="text-sm leading-6 text-text-secondary">
               載入中...
             </p>

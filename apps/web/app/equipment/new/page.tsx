@@ -88,7 +88,7 @@ function NewEquipmentPageContent() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl space-y-6 bg-dark-page px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
+    <main className="mx-auto max-w-3xl space-y-6 bg-transparent px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
       <FormPageHeader
         title={isEditing ? "編輯沖煮器具" : "新增沖煮器具"}
         description={
@@ -99,7 +99,7 @@ function NewEquipmentPageContent() {
         backLabel="返回器具列表"
       />
 
-      <section className="rounded-2xl border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200">
+      <section className="glass-panel ui-rhythm rounded-2xl px-4 py-4">
         <form onSubmit={onSubmit} className="grid gap-6">
           <label className="grid gap-1">
             <span className="text-sm font-medium text-text-secondary">器具名稱</span>
@@ -107,7 +107,7 @@ function NewEquipmentPageContent() {
               required
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="rounded-xl border border-border-subtle bg-dark-control px-4 py-3 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35"
+              className="glass-chip ui-rhythm rounded-xl px-4 py-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35"
               placeholder="V60 02 濾杯"
             />
           </label>
@@ -120,7 +120,7 @@ function NewEquipmentPageContent() {
               onChange={(event) =>
                 setType(event.target.value as (typeof equipmentTypes)[number])
               }
-              className="rounded-xl border border-border-subtle bg-dark-control px-4 py-3 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35"
+              className="glass-chip ui-rhythm rounded-xl px-4 py-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35"
             >
               {equipmentTypes.map((type) => (
                 <option key={type} value={type}>
@@ -135,7 +135,7 @@ function NewEquipmentPageContent() {
             <input
               value={brand}
               onChange={(event) => setBrand(event.target.value)}
-              className="rounded-xl border border-border-subtle bg-dark-control px-4 py-3 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35"
+              className="glass-chip ui-rhythm rounded-xl px-4 py-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35"
               placeholder="Hario"
             />
           </label>
@@ -165,13 +165,13 @@ export default function NewEquipmentPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-3xl space-y-6 bg-dark-page px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
+        <main className="mx-auto max-w-3xl space-y-6 bg-transparent px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
           <FormPageHeader
             title="新增沖煮器具"
             description="正在載入器具資料。"
             backLabel="返回器具列表"
           />
-          <section className="rounded-2xl border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200">
+          <section className="glass-panel ui-rhythm rounded-2xl px-4 py-4">
             <p className="text-sm leading-6 text-text-secondary">載入中...</p>
           </section>
         </main>

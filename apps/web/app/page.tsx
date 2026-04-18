@@ -23,36 +23,9 @@ type Action = {
   description: string;
 };
 
-type WeeklyRhythmDay = {
-  key: string;
-  label: string;
-  cups: number;
-  isToday: boolean;
-};
-
 const supportHref =
   process.env.NEXT_PUBLIC_SUPPORT_FORM_URL?.trim() || "/support";
 const supportIsExternal = /^https?:\/\//.test(supportHref);
-const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-function getLocalDateKey(timestamp: number) {
-  const date = new Date(timestamp);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function getWeekStart(reference: Date) {
-  const start = new Date(reference);
-  start.setHours(0, 0, 0, 0);
-
-  const day = start.getDay();
-  const mondayOffset = day === 0 ? 6 : day - 1;
-  start.setDate(start.getDate() - mondayOffset);
-
-  return start;
-}
 
 function buildMonthlyMemory(records: AnalyticsRecord[], activeDays: number) {
   if (records.length === 0) {
@@ -80,30 +53,23 @@ function buildMonthlyMemory(records: AnalyticsRecord[], activeDays: number) {
   return `這個月，您與 ${topBean} 共度了 ${activeDays} 個清晨。`;
 }
 
-function buildWeeklyRhythm(records: AnalyticsRecord[]): WeeklyRhythmDay[] {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const weekStart = getWeekStart(today);
-  const countByDate = new Map<string, number>();
-
-  records.forEach((record) => {
-    const key = getLocalDateKey(record.createdAt);
-    countByDate.set(key, (countByDate.get(key) ?? 0) + 1);
-  });
-
-  return weekLabels.map((label, index) => {
-    const date = new Date(weekStart);
-    date.setDate(weekStart.getDate() + index);
-    const key = getLocalDateKey(date.getTime());
-
-    return {
-      key,
-      label,
-      cups: countByDate.get(key) ?? 0,
-      isToday: key === getLocalDateKey(today.getTime()),
-    };
-  });
+function StatChip({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="glass-chip ui-rhythm rounded-3xl px-4 py-4">
+      <p className="type-caption uppercase tracking-[0.2em] text-text-secondary">
+        {label}
+      </p>
+      <p className="mt-3 text-[1.75rem] font-semibold leading-none tracking-[-0.04em] text-text-primary">
+        {value}
+      </p>
+    </div>
+  );
 }
 
 function ActionCard({
@@ -115,66 +81,26 @@ function ActionCard({
   return (
     <Link
       href={href}
-      className="group rounded-2xl border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200 hover:bg-dark-control active:scale-[0.98]"
+      className="glass-chip ui-rhythm group flex min-h-32 flex-col justify-between rounded-[1.6rem] px-5 py-5 hover:border-white/16 hover:bg-white/8 active:scale-[0.985]"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-text-primary">{title}</p>
-          <p className="mt-1 text-xs leading-5 text-text-secondary">
+          <p className="type-body text-text-primary">{title}</p>
+          <p className="type-secondary mt-2 text-text-secondary">
             {description}
           </p>
         </div>
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-dark-control text-text-secondary transition-colors duration-200 group-hover:text-text-primary">
-          <Icon className="h-4.5 w-4.5" />
+        <div className="glass-chip ui-rhythm flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-text-secondary group-hover:text-text-primary">
+          <Icon className="h-5 w-5" />
         </div>
       </div>
-      <div className="mt-4 flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-text-secondary">
+      <div className="mt-5 flex items-center justify-between">
+        <span className="type-caption uppercase tracking-[0.2em] text-text-secondary">
           Open
         </span>
-        <ArrowRight className="h-4 w-4 text-text-secondary transition-transform duration-200 group-hover:translate-x-0.5" />
+        <ArrowRight className="ui-rhythm h-5 w-5 text-text-secondary group-hover:translate-x-0.5" />
       </div>
     </Link>
-  );
-}
-
-function MetricChip({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-border-subtle bg-dark-panel px-4 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary">
-        {label}
-      </p>
-      <p className="mt-2 text-2xl font-semibold tracking-tight text-text-primary">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function RhythmDots({ cups }: { cups: number }) {
-  if (cups <= 0) {
-    return <div className="h-2.5 w-2.5 rounded-full bg-white/8" />;
-  }
-
-  return (
-    <div className="flex min-h-10 flex-wrap justify-center gap-2">
-      {Array.from({ length: cups }).map((_, index) => (
-        <span
-          key={`${cups}-${index}`}
-          className="h-2.5 w-2.5 rounded-full bg-cta-primary"
-          style={{
-            boxShadow:
-              "0 0 10px color-mix(in srgb, var(--cta-primary) 36%, transparent)",
-          }}
-        />
-      ))}
-    </div>
   );
 }
 
@@ -185,10 +111,6 @@ export default function HomePage() {
   );
   const records = useMemo(() => recordsQuery ?? [], [recordsQuery]);
   const latestRecord = records[0] ?? null;
-  const weeklySnapshot = useMemo(
-    () => buildAnalyticsSnapshot(records, "week", "", ""),
-    [records]
-  );
   const monthlySnapshot = useMemo(
     () => buildAnalyticsSnapshot(records, "month", "", ""),
     [records]
@@ -200,10 +122,6 @@ export default function HomePage() {
         monthlySnapshot.activeDays
       ),
     [monthlySnapshot]
-  );
-  const weeklyRhythm = useMemo(
-    () => buildWeeklyRhythm(weeklySnapshot.scopedRecords),
-    [weeklySnapshot]
   );
   const todayLabel = useMemo(
     () =>
@@ -244,117 +162,109 @@ export default function HomePage() {
     },
   ];
 
+  const averageScoreLabel =
+    monthlySnapshot.averageScore > 0
+      ? monthlySnapshot.averageScore.toFixed(1)
+      : "—";
+
   return (
-    <main className="mx-auto max-w-3xl space-y-8 overflow-x-hidden bg-dark-page px-4 pb-6 pt-2 text-text-primary transition-colors duration-200 sm:px-6">
-      <header className="flex items-start justify-between gap-3">
-        <div className="min-w-0 space-y-2">
-          <p className="text-sm font-medium text-text-secondary">{todayLabel}</p>
-          <h1 className="truncate text-[1.65rem] font-bold tracking-tight text-text-primary">
-            CoffeeLog
-          </h1>
-        </div>
+    <div className="ambient-page relative isolate min-h-[100dvh] overflow-hidden text-text-primary">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-primary-default/15 blur-[90px]" />
+        <div className="absolute right-[-5rem] top-24 h-72 w-72 rounded-full bg-cta-primary/12 blur-[110px]" />
+        <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-black/20 to-transparent" />
+      </div>
 
-        <div className="flex shrink-0 items-center gap-1.5">
-          <ThemeToggle />
-          <Link
-            href={supportHref}
-            target={supportIsExternal ? "_blank" : undefined}
-            rel={supportIsExternal ? "noreferrer" : undefined}
-            className="select-none inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border-subtle bg-dark-panel text-text-secondary shadow-sm transition-colors duration-200 hover:bg-dark-control hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35 active:scale-95"
-            aria-label="開啟支援"
-          >
-            <HelpCircle className="h-5 w-5" />
-          </Link>
-        </div>
-      </header>
-
-      <section className="rounded-[2rem] border border-border-subtle bg-surface-highlight px-5 py-6 shadow-[0_18px_40px_rgba(0,0,0,0.28)] transition-colors duration-200 sm:px-6 sm:py-7">
-        <div className="max-w-2xl">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-secondary">
-            Monthly Memory
-          </p>
-          <div className="mt-5 flex items-end gap-3">
-            <p className="text-6xl font-semibold leading-none tracking-[-0.05em] text-text-primary sm:text-7xl">
-              {monthlySnapshot.totalCups}
-            </p>
-            <p className="pb-2 text-sm font-medium text-text-secondary">
-              cups this month
-            </p>
-          </div>
-          <p className="mt-5 max-w-xl text-sm leading-7 text-text-secondary sm:text-[15px]">
-            {monthlyMemory}
-          </p>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-2 gap-3">
-        <MetricChip label="Weekly Total" value={`${weeklySnapshot.totalCups}`} />
-        <MetricChip label="Monthly Total" value={`${monthlySnapshot.totalCups}`} />
-      </section>
-
-      <section className="rounded-[2rem] border border-border-subtle bg-surface-highlight px-5 py-6 shadow-[0_18px_40px_rgba(0,0,0,0.24)] transition-colors duration-200 sm:px-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-secondary">
-              Weekly Rhythm
-            </p>
-            <h2 className="mt-2 text-xl font-semibold tracking-tight text-text-primary">
-              這週的沖煮節奏
-            </h2>
-          </div>
-          <div
-            className="rounded-full border border-border-subtle px-3 py-1 text-xs font-semibold text-text-secondary"
-            style={{
-              boxShadow:
-                weeklySnapshot.totalCups > 0
-                  ? "0 0 16px color-mix(in srgb, var(--glow-primary) 28%, transparent)"
-                  : undefined,
-            }}
-          >
-            {weeklySnapshot.totalCups > 0
-              ? `${weeklySnapshot.totalCups} cups in motion`
-              : "Waiting for the first cup"}
-          </div>
-        </div>
-
-        <div className="mt-8 grid grid-cols-7 gap-2 sm:gap-3">
-          {weeklyRhythm.map((day) => (
-            <div
-              key={day.key}
-              className="flex min-h-28 flex-col items-center justify-between rounded-[1.4rem] border border-border-subtle bg-dark-panel px-2 py-4 text-center transition-colors duration-200"
-              style={
-                day.isToday
-                  ? {
-                      boxShadow:
-                        "0 0 0 1px color-mix(in srgb, var(--glow-primary) 48%, transparent), 0 0 22px color-mix(in srgb, var(--glow-primary) 24%, transparent)",
-                    }
-                  : undefined
-              }
-            >
-              <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-secondary">
-                {day.label}
-              </span>
-              <RhythmDots cups={day.cups} />
-              <span className="text-xs font-medium text-text-secondary">
-                {day.cups > 0 ? `${day.cups} cup${day.cups > 1 ? "s" : ""}` : "Rest"}
-              </span>
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pb-4 pt-3 sm:px-6">
+        <header className="flex items-start justify-between gap-4 pt-1">
+          <div className="min-w-0 space-y-2">
+            <p className="type-secondary text-text-secondary">{todayLabel}</p>
+            <div className="space-y-1">
+              <p className="type-caption uppercase tracking-[0.2em] text-primary-default/90">
+                Coffee Rhythm
+              </p>
+              <h1 className="type-section truncate text-text-primary">CoffeeLog</h1>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
 
-      <section className="space-y-3">
-        <div className="px-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-secondary">
-            Quick Access
+          <div className="flex shrink-0 items-center gap-2">
+            <ThemeToggle />
+            <Link
+              href={supportHref}
+              target={supportIsExternal ? "_blank" : undefined}
+              rel={supportIsExternal ? "noreferrer" : undefined}
+              className="glass-chip ui-rhythm inline-flex h-11 w-11 items-center justify-center rounded-2xl text-text-secondary hover:text-text-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/35"
+              aria-label="開啟支援"
+            >
+              <HelpCircle className="h-5 w-5" />
+            </Link>
+          </div>
+        </header>
+
+        <div className="glass-panel ui-rhythm space-y-3 rounded-[1.75rem] px-6 py-5">
+          <p className="type-caption uppercase tracking-[0.24em] text-text-secondary">
+            Glass & Rhythm
+          </p>
+          <p className="type-body max-w-2xl text-text-secondary">
+            用毛玻璃層次與節奏化摘要，把每杯咖啡從紀錄表格改成更接近
+            iPhone 原生的每日狀態畫面。
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {actions.map((action) => (
-            <ActionCard key={action.title} {...action} />
-          ))}
+
+        <div
+          className="snap-cards flex flex-col gap-5 pb-4"
+          style={{ scrollSnapType: "y proximity" }}
+        >
+          <section className="glass-panel-strong snap-card ui-rhythm w-full px-6 py-6 sm:px-7 sm:py-7">
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <p className="type-caption uppercase tracking-[0.24em] text-text-secondary">
+                  Hero / Monthly Memory
+                </p>
+                <h2 className="type-section text-text-primary">本月記憶</h2>
+                <p className="type-body max-w-xl text-text-secondary">
+                  {monthlyMemory}
+                </p>
+              </div>
+
+              <div className="flex items-end gap-3">
+                <p className="type-display text-text-primary">
+                  {monthlySnapshot.totalCups}
+                </p>
+                <p className="type-secondary pb-2 text-text-secondary">
+                  cups this month
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <StatChip
+                  label="Active Days"
+                  value={`${monthlySnapshot.activeDays}`}
+                />
+                <StatChip label="Avg Score" value={averageScoreLabel} />
+              </div>
+            </div>
+          </section>
+
+          <section className="glass-panel snap-card ui-rhythm w-full px-6 py-6 sm:px-7 sm:py-7">
+            <div className="space-y-3">
+              <p className="type-caption uppercase tracking-[0.24em] text-text-secondary">
+                Quick Actions
+              </p>
+              <h2 className="type-section text-text-primary">快速入口</h2>
+              <p className="type-secondary max-w-lg text-text-secondary">
+                把最常回訪的任務收進一張卡，讓首頁維持乾淨，但操作不需要多一步。
+              </p>
+            </div>
+
+            <div className="mt-7 grid gap-3">
+              {actions.map((action) => (
+                <ActionCard key={action.title} {...action} />
+              ))}
+            </div>
+          </section>
         </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }

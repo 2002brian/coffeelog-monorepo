@@ -32,7 +32,7 @@ function InfoRow({
 
 export default function SupportPage() {
   return (
-    <main className="mx-auto max-w-3xl space-y-6 bg-dark-page px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
+    <main className="mx-auto max-w-3xl space-y-6 bg-transparent px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
       <FormPageHeader
         title="支援與關於"
         description="如果你在使用 CoffeeLog 或 AI 教練時遇到問題，可以從這裡取得協助。"
@@ -41,7 +41,7 @@ export default function SupportPage() {
 
       <section className="space-y-2">
         <SectionEyebrow>聯絡支援</SectionEyebrow>
-        <div className="overflow-hidden rounded-2xl border border-border-subtle bg-dark-panel shadow-sm transition-colors duration-200">
+        <div className="glass-panel ui-rhythm overflow-hidden rounded-2xl">
           <div className="divide-y divide-border-subtle">
             <InfoRow
               title="技術支援"
@@ -61,7 +61,7 @@ export default function SupportPage() {
 
       <section className="space-y-2">
         <SectionEyebrow>服務資訊</SectionEyebrow>
-        <div className="overflow-hidden rounded-2xl border border-border-subtle bg-dark-panel shadow-sm transition-colors duration-200">
+        <div className="glass-panel ui-rhythm overflow-hidden rounded-2xl">
           <div className="divide-y divide-border-subtle">
             <InfoRow
               title="本地資料優先"

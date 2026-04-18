@@ -261,14 +261,14 @@ function GroupedSection({
   return (
     <section className="space-y-2">
       <div className="px-1">
-        <p className="text-[11px] font-semibold text-text-secondary">
+        <p className="text-[13px] font-medium text-text-secondary">
           {title}
         </p>
         {description ? (
           <p className="mt-1 text-sm leading-5 text-text-secondary">{description}</p>
         ) : null}
       </div>
-      <div className="overflow-hidden rounded-[1.1rem] border border-border-subtle bg-dark-panel shadow-sm transition-colors duration-200">
+      <div className="glass-panel ui-rhythm overflow-hidden rounded-[1.1rem]">
         {children}
       </div>
     </section>
@@ -312,8 +312,8 @@ function StatField({
   children: ReactNode;
 }) {
   return (
-    <label className="grid gap-2 rounded-xl border border-border-subtle bg-dark-control px-3 py-3 transition-colors duration-200">
-      <span className="text-[11px] font-medium text-text-secondary">{label}</span>
+    <label className="glass-chip ui-rhythm grid gap-2 rounded-xl px-3 py-3">
+      <span className="text-[13px] font-medium text-text-secondary">{label}</span>
       <div className="min-w-0">{children}</div>
     </label>
   );
@@ -553,7 +553,7 @@ export default function BrewFormClient() {
 
   if (beans === undefined || equipmentOptions === undefined) {
     return (
-      <section className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200">
+      <section className="glass-panel ui-rhythm rounded-xl px-4 py-4">
         <p className="text-sm leading-6 text-text-secondary">
           正在從本地資料庫載入咖啡豆與器具資料。
         </p>
@@ -563,7 +563,7 @@ export default function BrewFormClient() {
 
   if (beans.length === 0) {
     return (
-      <section className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200">
+      <section className="glass-panel ui-rhythm rounded-xl px-4 py-4">
         <p className="text-sm leading-6 text-text-secondary">
           目前沒有可用的咖啡豆資料，請先前往新增咖啡豆。
         </p>
@@ -573,7 +573,7 @@ export default function BrewFormClient() {
 
   if (availableBeanCount === 0) {
     return (
-      <section className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200">
+      <section className="glass-panel ui-rhythm rounded-xl px-4 py-4">
         <p className="text-sm leading-6 text-text-secondary">
           目前沒有可沖煮的咖啡豆。請先補充庫存，或啟用仍有剩餘重量的咖啡豆。
         </p>
@@ -583,7 +583,7 @@ export default function BrewFormClient() {
 
   if (equipmentOptions.length === 0) {
     return (
-      <section className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200">
+      <section className="glass-panel ui-rhythm rounded-xl px-4 py-4">
         <p className="text-sm leading-6 text-text-secondary">
           目前沒有可用的器具資料，請先前往新增器具。
         </p>
@@ -593,7 +593,7 @@ export default function BrewFormClient() {
 
   if (dripperOptions.length === 0) {
     return (
-      <section className="rounded-xl border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200">
+      <section className="glass-panel ui-rhythm rounded-xl px-4 py-4">
         <p className="text-sm leading-6 text-text-secondary">
           目前還沒有濾杯資料，請先新增至少一個濾杯，才能開始建立沖煮紀錄。
         </p>
@@ -603,16 +603,16 @@ export default function BrewFormClient() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <section className="overflow-hidden rounded-[1.1rem] border border-border-subtle bg-dark-panel px-4 py-3 shadow-sm transition-colors duration-200">
+      <section className="glass-panel ui-rhythm overflow-hidden rounded-[1.1rem] px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold text-text-secondary">
+            <p className="text-[13px] font-medium text-text-secondary">
               沖煮設定
             </p>
           </div>
           <div className="text-right tabular-nums">
             <p className="text-lg font-bold tracking-tight text-text-primary transition-colors duration-200">{brewClock}</p>
-            <p className="mt-1 text-[11px] font-semibold text-text-secondary">
+            <p className="mt-1 text-[13px] font-medium text-text-secondary">
               粉水比 {ratioPreview}
             </p>
           </div>
@@ -621,7 +621,7 @@ export default function BrewFormClient() {
 
       <section className="space-y-2">
         <div className="px-1">
-          <p className="text-[11px] font-semibold text-text-secondary">快速預設配方</p>
+          <p className="text-[13px] font-medium text-text-secondary">快速預設配方</p>
         </div>
         <div className="-mx-1 overflow-x-auto px-1 pb-1">
           <div className="flex min-w-max gap-2">
@@ -635,12 +635,12 @@ export default function BrewFormClient() {
                   onClick={() => applyQuickPreset(preset)}
                   className={`inline-flex select-none flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30 active:scale-95 ${
                     active
-                      ? "border-cta-primary/30 bg-dark-control text-text-primary"
-                      : "border-border-subtle bg-dark-panel text-text-primary hover:bg-dark-control"
+                      ? "glass-chip shadow-[0_0_0_1px_color-mix(in_srgb,var(--cta-primary)_24%,transparent)] text-text-primary"
+                      : "glass-chip text-text-primary hover:bg-white/6"
                   }`}
                 >
                   <span className="text-sm font-semibold">{preset.title}</span>
-                  <span className="mt-1 text-xs text-text-secondary">{preset.summary}</span>
+                  <span className="mt-1 text-[13px] font-medium text-text-secondary">{preset.summary}</span>
                 </button>
               );
             })}
@@ -659,7 +659,7 @@ export default function BrewFormClient() {
               setActivePresetId(null);
             }}
             enterKeyHint="next"
-            className="w-full rounded-xl border border-border-subtle bg-dark-control px-3 py-2.5 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
+            className="glass-chip ui-rhythm w-full rounded-xl px-3 py-2.5 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
           >
             <option value="" disabled>
               請選擇咖啡豆
@@ -690,7 +690,7 @@ export default function BrewFormClient() {
               setActivePresetId(null);
             }}
             enterKeyHint="next"
-            className="w-full rounded-xl border border-border-subtle bg-dark-control px-3 py-2.5 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
+            className="glass-chip ui-rhythm w-full rounded-xl px-3 py-2.5 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
           >
             {dripperOptions.map((equipment) => (
               <option key={equipment.id} value={equipment.id}>
@@ -709,7 +709,7 @@ export default function BrewFormClient() {
               setActivePresetId(null);
             }}
             enterKeyHint="next"
-            className="w-full rounded-xl border border-border-subtle bg-dark-control px-3 py-2.5 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
+            className="glass-chip ui-rhythm w-full rounded-xl px-3 py-2.5 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
           >
             <option value="">未指定磨豆機</option>
             {grinderOptions.map((equipment) => (
@@ -729,7 +729,7 @@ export default function BrewFormClient() {
               setActivePresetId(null);
             }}
             enterKeyHint="next"
-            className="w-full rounded-xl border border-border-subtle bg-dark-control px-3 py-2.5 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
+            className="glass-chip ui-rhythm w-full rounded-xl px-3 py-2.5 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
           >
             <option value="">未指定濾紙</option>
             {filterOptions.map((equipment) => (
@@ -871,7 +871,7 @@ export default function BrewFormClient() {
                   aria-label="沖煮秒數"
                 />
               </div>
-              <p className="text-right text-xs text-text-secondary">目前 {brewClock}</p>
+              <p className="text-right text-[13px] font-medium text-text-secondary">目前 {brewClock}</p>
             </div>
           </StatField>
 
@@ -909,7 +909,7 @@ export default function BrewFormClient() {
                   aria-label="悶蒸秒數"
                 />
               </div>
-              <p className="text-right text-xs text-text-secondary">目前 {bloomClock}</p>
+              <p className="text-right text-[13px] font-medium text-text-secondary">目前 {bloomClock}</p>
             </div>
           </StatField>
         </FieldGrid>
@@ -917,11 +917,11 @@ export default function BrewFormClient() {
 
       <section className="space-y-2">
         <div className="px-1">
-          <p className="text-[11px] font-semibold text-text-secondary">
+          <p className="text-[13px] font-medium text-text-secondary">
             感官評分
           </p>
         </div>
-        <div className="rounded-[1.1rem] border border-border-subtle bg-dark-panel px-4 py-4 shadow-sm transition-colors duration-200">
+        <div className="glass-panel ui-rhythm rounded-[1.1rem] px-4 py-4">
           <div className="grid gap-3">
             {sensoryMeta.map((item) => (
               <TactileSlider
@@ -946,7 +946,7 @@ export default function BrewFormClient() {
             name="feedback"
             rows={3}
             enterKeyHint="done"
-            className="w-full rounded-xl border border-border-subtle bg-dark-control px-3 py-3 text-sm text-text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
+            className="glass-chip ui-rhythm w-full rounded-xl px-3 py-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta-primary/30"
             placeholder="記下悶蒸、香氣與萃取流速的觀察。"
           />
         </div>

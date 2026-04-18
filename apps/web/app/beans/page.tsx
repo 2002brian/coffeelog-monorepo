@@ -44,7 +44,7 @@ export default function BeansPage() {
   }, [beans, searchQuery]);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 bg-dark-page px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
+    <main className="mx-auto max-w-5xl space-y-6 bg-transparent px-4 pb-6 pt-2 transition-colors duration-200 sm:px-6">
       <header className="space-y-2">
         <h1 className="text-[1.65rem] font-bold tracking-tight text-text-primary">
           咖啡豆
@@ -56,7 +56,7 @@ export default function BeansPage() {
 
       <section className="space-y-2">
         <SectionEyebrow>搜尋</SectionEyebrow>
-        <label className="flex items-center gap-3 rounded-2xl border border-border-subtle bg-dark-panel px-4 py-3 shadow-sm transition-colors duration-200 focus-within:bg-dark-control focus-within:ring-2 focus-within:ring-primary-default/35">
+        <label className="glass-panel ui-rhythm flex items-center gap-3 rounded-2xl px-4 py-3 focus-within:ring-2 focus-within:ring-primary-default/35">
           <Search className="h-4.5 w-4.5 text-text-secondary" />
           <input
             value={searchQuery}
@@ -65,7 +65,7 @@ export default function BeansPage() {
             placeholder="搜尋豆名、產區、處理法或風味"
             aria-label="搜尋咖啡豆"
           />
-          <span className="shrink-0 text-xs font-medium text-text-secondary">
+          <span className="shrink-0 text-[13px] font-medium text-text-secondary">
             {beans ? `${filteredBeans.length}` : "--"}
           </span>
         </label>
@@ -75,27 +75,26 @@ export default function BeansPage() {
         <SectionEyebrow>豆單列表</SectionEyebrow>
 
         {beans === undefined ? (
-          <div className="rounded-2xl border border-border-subtle bg-dark-panel px-4 py-4 text-sm text-text-secondary shadow-sm transition-colors duration-200">
+          <div className="glass-panel ui-rhythm rounded-2xl px-4 py-4 text-sm text-text-secondary">
             正在從本地資料庫載入豆單...
           </div>
         ) : beans.length === 0 ? (
-          <div className="rounded-2xl border border-border-subtle bg-dark-panel px-4 py-4 text-sm text-text-secondary shadow-sm transition-colors duration-200">
+          <div className="glass-panel ui-rhythm rounded-2xl px-4 py-4 text-sm text-text-secondary">
             目前尚無咖啡豆資料，先新增第一支豆子吧。
           </div>
         ) : filteredBeans.length === 0 ? (
-          <div className="rounded-2xl border border-border-subtle bg-dark-panel px-4 py-4 text-sm text-text-secondary shadow-sm transition-colors duration-200">
+          <div className="glass-panel ui-rhythm rounded-2xl px-4 py-4 text-sm text-text-secondary">
             沒有符合搜尋條件的豆子。
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-border-subtle bg-dark-panel shadow-sm transition-colors duration-200">
-            <div className="divide-y divide-border-subtle">
+          <div className="space-y-3">
               {filteredBeans.map((bean) => {
                 const flavorTags = extractFlavorTags(bean.notes);
 
                 return (
                   <article
                     key={bean.id}
-                    className="px-4 py-3 transition-colors duration-200 hover:bg-dark-control"
+                    className="glass-panel ui-rhythm rounded-2xl px-4 py-3 hover:bg-white/4"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
@@ -105,11 +104,11 @@ export default function BeansPage() {
                             {bean.name}
                           </h2>
                         </div>
-                        <p className="mt-1 truncate text-xs leading-5 text-text-secondary">
+                        <p className="mt-1 truncate text-sm leading-5 text-text-secondary">
                           {bean.roastLevel} · {bean.origin} · {bean.process}
                         </p>
                       </div>
-                      <span className="shrink-0 rounded-full border border-border-subtle bg-dark-control px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors duration-200">
+                      <span className="glass-chip ui-rhythm shrink-0 rounded-full px-2.5 py-1 text-[13px] font-medium text-text-secondary">
                         {flavorTags.length > 0 ? `${flavorTags.length} 標籤` : "未標記"}
                       </span>
                     </div>
@@ -119,32 +118,32 @@ export default function BeansPage() {
                         flavorTags.map((tag) => (
                           <span
                             key={tag}
-                            className="inline-flex rounded-full border border-border-subtle bg-dark-control px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors duration-200"
+                            className="glass-chip ui-rhythm inline-flex rounded-full px-2.5 py-1 text-[13px] font-medium text-text-secondary"
                           >
                             {tag}
                           </span>
                         ))
                       ) : (
-                        <span className="inline-flex rounded-full border border-border-subtle bg-dark-control px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors duration-200">
+                        <span className="glass-chip ui-rhythm inline-flex rounded-full px-2.5 py-1 text-[13px] font-medium text-text-secondary">
                           尚未設定風味標籤
                         </span>
                       )}
                     </div>
 
                     <div className="mt-3 grid grid-cols-2 gap-2">
-                      <div className="rounded-xl border border-border-subtle bg-dark-control px-3 py-2.5 transition-colors duration-200">
+                      <div className="glass-chip ui-rhythm rounded-xl px-3 py-2.5">
                         <div className="flex items-center gap-2 text-text-secondary">
                           <MapPin className="h-3.5 w-3.5" />
-                          <span className="text-xs font-medium text-text-secondary">產區</span>
+                          <span className="text-[13px] font-medium text-text-secondary">產區</span>
                         </div>
                         <p className="mt-1 text-sm font-semibold text-text-primary">
                           {bean.origin}
                         </p>
                       </div>
-                      <div className="rounded-xl border border-border-subtle bg-dark-control px-3 py-2.5 transition-colors duration-200">
+                      <div className="glass-chip ui-rhythm rounded-xl px-3 py-2.5">
                         <div className="flex items-center gap-2 text-text-secondary">
                           <Waves className="h-3.5 w-3.5" />
-                          <span className="text-xs font-medium text-text-secondary">處理法</span>
+                          <span className="text-[13px] font-medium text-text-secondary">處理法</span>
                         </div>
                         <p className="mt-1 text-sm font-semibold text-text-primary">
                           {bean.process}
@@ -167,7 +166,6 @@ export default function BeansPage() {
                   </article>
                 );
               })}
-            </div>
           </div>
         )}
       </section>

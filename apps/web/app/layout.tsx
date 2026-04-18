@@ -35,10 +35,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-TW" suppressHydrationWarning>
-      <body className="bg-dark-page text-text-primary antialiased">
+      <body className="ambient-page bg-dark-page text-text-primary antialiased">
         <ThemeProvider>
           <WidgetSyncBridge />
-          <main className="app-safe-area min-h-screen">{children}</main>
+          <main className="app-safe-area min-h-[100dvh]">{children}</main>
           <BottomNav />
         </ThemeProvider>
       </body>
